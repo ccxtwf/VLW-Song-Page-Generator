@@ -409,7 +409,7 @@ div.warnings {
     <td colspan="4"><hr></td>
   </tr>
   <tr id=thumbrow>
-    <td class=caption style="font-size: 14pt">PV Thumbnails:<br><span class=info>&#x1F6C8;<span class=tooltip>Save PV stills as local file<br><br>May fail to get working HQ images for older songs.</span></span></td>
+    <td class=caption style="font-size: 14pt">PV Thumbnails:<br><span class=info>&#x1F6C8;<span class=tooltip>Save PV stills as local file<br><br>May fail to get working HQ images for older songs.<br>Finicky when trying to get images from Bilibili.</span></span></td>
     <td colspan="3"><div id=thumbrowinner></div></td>
   </tr>
   <tr id=wikitemplaterow>
@@ -476,7 +476,7 @@ div.warnings {
     <td colspan="4"><hr></td>
   </tr>
   <tr>
-    <td class=caption id=playlinkscaption>Play links:<br><span class=info>&#x1F6C8;<span class=tooltip>Links to play song, one per line<br>Recognized links: youtu.be, youtube.com, nicovideo.jp, piapro.jp, soundcloud.com, bandcamp.com, vimeo.com, bilibili.com<br><br>Add, delete, or drag rows as you please<br>Double click to change options on dropdown box</span></span></td>
+    <td class=caption id=playlinkscaption>Play links:<br><span class=info>&#x1F6C8;<span class=tooltip>Links to play song, one per line<br>Recognized links: youtu.be, youtube.com, nicovideo.jp, piapro.jp, soundcloud.com, bandcamp.com, vimeo.com, bilibili.com<br><br>Add, delete, or drag rows as you please<br>Double click to change options on dropdown box<br>Leave URL empty if there's no play link available (e.g. the song is not publicly available or the song is an album-only release).</span></span></td>
     <td colspan="3">
       <div id=playlinks tabindex="1" class="jexcel_container">    </div>
       </td>
@@ -591,7 +591,7 @@ let changed = function(instance, cell, col, row, value) {
 playLinksTable = jspreadsheet(document.getElementById("playlinks"), {
   data: playLinks_init,
   columns: [
-    { type: "dropdown", title: "Site", width: 200, source: ["Niconico", "bilibili", "YouTube", "Vimeo", "Bandcamp", "piapro", "SoundCloud", "Netease", "Creofuga"] },
+    { type: "dropdown", title: "Site", width: 200, source: ["Niconico", "bilibili", "YouTube", "Vimeo", "Bandcamp", "piapro", "SoundCloud", "Netease", "Creofuga", ""] },
     { type: "text", title: "URL", width: 250 },
     { type: "checkbox", title: "Reprint?", width: 80 },
     { type: "checkbox", title: "Auto-gen?", width: 80 },
@@ -607,6 +607,7 @@ playLinksTable = jspreadsheet(document.getElementById("playlinks"), {
   allowDeleteRow: true,
   allowDeleteColumn: false,
   rowDrag: true,
+  minDimensions: [6,0],
   onchange: changed
 });
 
