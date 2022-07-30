@@ -177,7 +177,8 @@ async function importFromVocaDB() {
                                 pvthumb = pvthumb.replace("default.jpg", "hqdefault.webp");
                                 break;
                             case "bilibili":
-                                pvthumb = pv.thumbUrl.replace(/^https?:\/\/i\d.hdslb.com/, "https://i0.hdslb.com/");
+                                pvthumb = pv.thumbUrl;
+                                //pvthumb = pvthumb.replace(/^https?:\/\/i\d.hdslb.com/, "https://i0.hdslb.com/");
                                 break;
                             default:
                                 pvthumb = pv.thumbUrl;
