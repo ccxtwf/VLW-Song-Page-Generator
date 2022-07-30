@@ -301,7 +301,7 @@ function generateLyrics() {
         //Merge the columns if they have identical text
         else if ((bTranslationExists && rowOrigLyrics == rowRomLyrics && rowOrigLyrics == rowEngLyrics) || (!bTranslationExists && numColumns == 3 && rowOrigLyrics == rowRomLyrics)) {
           //strLyricsTable += "| {{shared|" + numColumns-1 + "}} style=\"font-style:italic; font-weight:bold; text-align:center;\" |" + rowOrigLyrics + "\n";
-          strLyricsTable += "| {{shared|3}} style=\"font-style:italic; font-weight:bold; text-align:center;\" |" + rowOrigLyrics + "\n";
+          strLyricsTable += "| {{shared|3}} |" + rowOrigLyrics + "\n";
         }
 
         //Add each line otherwise
