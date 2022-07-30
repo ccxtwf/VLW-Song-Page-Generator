@@ -103,9 +103,9 @@ function generateSongPage() {
 
 function generateContentWarnings() {
   let strContentWarnings = "";
-  if (document.getElementById("questionablecontent").checked) {strContentWarnings = "{Questionable}\n";}
-  else if (document.getElementById("explicitcontent").checked) {strContentWarnings = "{Explicit}\n";}
-  if (document.getElementById("epilepticcontent").checked) {strContentWarnings = "{Epilepsy}" + strContentWarnings;}
+  if (document.getElementById("questionablecontent").checked) {strContentWarnings = "{{Questionable}}\n";}
+  else if (document.getElementById("explicitcontent").checked) {strContentWarnings = "{{Explicit}}\n";}
+  if (document.getElementById("epilepticcontent").checked) {strContentWarnings = "{{Epilepsy}}" + strContentWarnings;}
   return strContentWarnings;
 }
 
@@ -316,7 +316,7 @@ function generateLyrics() {
     }
 
     //Close the wiki table
-    strLyricsTable += "}";
+    strLyricsTable += "|}";
 
     //Add translator credit
     if (bTranslationExists) {
@@ -348,11 +348,11 @@ function generateExternalLinks() {
       url = extLink[0];
       description = extLink[1];
       //VocaDB
-      if (url.match(/^https?:\/\/vocadb\.net\/.*/)) {
-        strExtLink = "*{{VDB|" + url.replace(/^https?:\/\/vocadb\.net\//, "") + "}}";
-      }
+      //if (url.match(/^https?:\/\/vocadb\.net\/.*/)) {
+        //strExtLink = "*{{VDB|" + url.replace(/^https?:\/\/vocadb\.net\//, "") + "}}";
+      //}
       //Fandom Wiki
-      else if (url.match(/^https?:\/\/.*\.fandom\.com\/.*/)) {
+      if (url.match(/^https?:\/\/.*\.fandom\.com\/.*/)) {
         wiki = url.replace(/^https?:\/\//, "").replace(/\.fandom\.com\/wiki\/.*/, "");
         page = url.replace(/^https?:\/\/.*\.fandom\.com\/wiki\//, "");
         strExtLink = "*[[w:c:" + wiki + ":" + page + "|" + description + "]]";
