@@ -474,23 +474,23 @@ function autoloadCategories()
             break;
         };
         if (bProdWikiCat["music"] || bProdWikiCat["default"]) {
-          strAutoloadCategories += "\n" + prodName + " original songs"
+          strAutoloadCategories += "\n" + prodName + " songs list"
         }
         else {
           if (bProdWikiCat["lyrics"]) {
-            strAutoloadCategories += "\n" + prodName + " original songs/Lyrics"
+            strAutoloadCategories += "\n" + prodName + " songs list/Lyrics"
           }
           if (bProdWikiCat["tuning"]) {
-            strAutoloadCategories += "\n" + prodName + " original songs/Tuning"
+            strAutoloadCategories += "\n" + prodName + " songs list/Tuning"
           }
           if (bProdWikiCat["arrangement"]) {
-            strAutoloadCategories += "\n" + prodName + " original songs/Arrangement"
+            strAutoloadCategories += "\n" + prodName + " songs list/Arrangement"
           }
           if (bProdWikiCat["visuals"]) {
-            strAutoloadCategories += "\n" + prodName + " original songs/Visuals"
+            strAutoloadCategories += "\n" + prodName + " songs list/Visuals"
           }
           if (bProdWikiCat["other"]) {
-            strAutoloadCategories += "\n" + prodName + " original songs/Other"
+            strAutoloadCategories += "\n" + prodName + " songs list/Other"
           }
         }
       });
