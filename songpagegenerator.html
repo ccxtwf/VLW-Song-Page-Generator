@@ -1,0 +1,641 @@
+<html>
+  <!-- 
+    References to JSpreadsheet CE v4 external library, for custom spreadsheet input tables 
+    For documentation please refer to https://bossanova.uk/jspreadsheet/v4/
+  -->
+  <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+  <script src="https://jsuites.net/v4/jsuites.js"></script>
+  <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css">
+  <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css">
+
+  <!-- Reference other scripts in the same project -->
+  <script src="importfromvocadb.js"></script>
+  <script src="generatesongpage.js"></script>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script>
+const colournames =
+  [
+  "black", "white", "aliceblue", "antiquewhite", "aqua", "aquamarine",
+  "azure", "beige", "bisque", "blanchedalmond", "blue", "blueviolet",
+  "brown", "burlywood", "cadetblue", "chartreuse", "chocolate", "coral",
+  "cornflowerblue", "cornsilk", "crimson", "cyan", "darkblue", "darkcyan",
+  "darkgoldenrod", "darkgray", "darkgreen", "darkgrey", "darkkhaki",
+  "darkmagenta", "darkolivegreen", "darkorange", "darkorchid", "darkred",
+  "darksalmon", "darkseagreen", "darkslateblue", "darkslategray",
+  "darkslategrey", "darkturquoise", "darkviolet", "deeppink", "deepskyblue",
+  "dimgray", "dimgrey", "dodgerblue", "firebrick", "floralwhite",
+  "forestgreen", "fuchsia", "gainsboro", "ghostwhite", "gold", "goldenrod",
+  "gray", "green", "greenyellow", "grey", "honeydew", "hotpink", "indianred",
+  "indigo", "ivory", "khaki", "lavender", "lavenderblush", "lawngreen",
+  "lemonchiffon", "lightblue", "lightcoral", "lightcyan",
+  "lightgoldenrodyellow", "lightgray", "lightgreen", "lightgrey",
+  "lightpink", "lightsalmon", "lightseagreen", "lightskyblue",
+  "lightslategray", "lightslategrey", "lightsteelblue", "lightyellow",
+  "lime", "limegreen", "linen", "magenta", "maroon", "mediumaquamarine",
+  "mediumblue", "mediumorchid", "mediumpurple", "mediumseagreen",
+  "mediumslateblue", "mediumspringgreen", "mediumturquoise",
+  "mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin",
+  "navajowhite", "navy", "oldlace", "olive", "olivedrab", "orange",
+  "orangered", "orchid", "palegoldenrod", "palegreen", "paleturquoise",
+  "palevioletred", "papayawhip", "peachpuff", "peru", "pink", "plum",
+  "powderblue", "purple", "rebeccapurple", "red", "rosybrown", "royalblue",
+  "saddlebrown", "salmon", "sandybrown", "seagreen", "seashell", "sienna",
+  "silver", "skyblue", "slateblue", "slategray", "slategrey", "snow",
+  "springgreen", "steelblue", "tan", "teal", "thistle", "tomato",
+  "turquoise", "violet", "wheat", "whitesmoke", "yellow", "yellowgreen"
+  ];
+
+const wikitemplates =
+  [
+  "Vocaloid Lyrics wiki", "UTAU Lyrics wiki", "CeVIO Lyrics wiki", "SynthV Lyrics wiki", "Voice Synth Lyrics wiki"
+  ]
+
+/*
+ * Names of commonly used sites based on their URLs.
+ * ### fandom sites should use w:c: links in generated code
+ */
+ const listPVService =
+    [
+    {re:"^https?://youtu\\.be/",                   site:"YouTube"},
+    {re:"^https?://(|www\\.)youtube.com/watch?.*", site:"YouTube"},
+    {re:"^https?://www\\.nicovideo\\.jp/.*",       site:"Niconico"},
+    {re:"^https?://piapro\\.jp/.*",                site:"piapro"},
+    {re:"^https?://soundcloud\\.com/.*",           site:"SoundCloud"},
+    {re:"^https?://.*bandcamp\\.com/.*",           site:"Bandcamp"},
+    {re:"^https?://vimeo\\.com/.*",                site:"Vimeo"},
+    {re:"^https?://www\\.bilibili\\.com/.*",       site:"bilibili"},
+    {re:"^https?://music\\.163\\.com/\\.*",        site:"Netease Music"},
+    ];
+
+const listRecognizedLinks = 
+    listPVService.concat(
+    [
+    {re:"^https?://www\\.animelyrics\\.com/.*",    site:"Anime Lyrics"},
+    {re:"^https?://vocadb\\.net/.*",               site:"VocaDB"},
+    {re:"^https?://vocaloidlyrics\\.fandom\\.com/*", site:"Vocaloid Lyrics Wiki"},
+    {re:"^https?://www5\\.atwiki\\.jp/hmiku/.*",   site:"Hatsune Miku Wiki"},
+    {re:"^https?://w\\.atwiki\\.jp/hmiku/.*",      site:"Hatsune Miku Wiki"},
+    {re:"^https?://vocaloid\\.fandom\\.com/.*",    site:"Vocaloid Wiki"},
+    {re:"^https?://dic\\.nicovideo\\.jp/.*",       site:"Niconico Pedia"},
+    {re:"^https?://ch\\.nicovideo\\.jp/.*",        site:"Blomaga"},
+    {re:"^https?://commons\\.nicovideo\\.jp/.*",   site:"Niconi Commons"},
+    {re:"^https?://www\\.pixiv\\.net/.*",          site:"pixiv"},
+    {re:"^https?://utaitedb\\.net/.*",             site:"UtaiteDB"},
+    {re:"^https?://project-diva\\.fandom\\.com/.*", site:"Project DIVA Wiki"},
+    {re:"^https?://projectdiva\\.wiki/.*",         site:"ProjectDIVA Wiki"},
+    {re:"^https?://theevilliouschronicles\\.fandom\\.com/.*", site:"The Evillious Chronicles Wiki"},
+    {re:"^https?://w\\.atwiki\\.jp/vocaloidenglishlyric/.*", site:"Vocaloid English & Romaji Lyrics @wiki"},
+    {re:"^https?://ja\\.chordwiki\\.org/.*",       site:"ChordWiki"},
+    {re:"^https?://dic\\.pixiv\\.net/.*",          site:"Pixiv Encyclopedia"},
+    {re:"^https?://en-dic\\.pixiv\\.net/.*",       site:"Pixiv Encyclopedia (English)"},
+    {re:"^https?://j-lyric\\.net/.*",              site:"J-Lyrics.net"},
+    {re:"^https?://karent\\.jp/.*",                site:"KARENT"},
+    {re:"^https?://en\\.wikipedia\\.org/.*",       site:"Wikipedia"},
+    {re:"^https?://ja\\.wikipedia\\.org/.*",       site:"Wikipedia (Japanese)"},
+    {re:"^https?://twitter\\.com/.*",              site:"Twitter"},
+    {re:"^https?://utaten\\.com/.*",               site:"UtaTen"},
+    {re:"^https?://www\\.kkbox\\.com/.*",          site:"KKBOX"},
+    {re:"^https?://www\\.lyrical-nonsense\\.com/.*", site:"Lyrical Nonsense"},
+    {re:"^https?://www\\.kget\\.jp/.*",            site:"KashiGET"},
+    {re:"^https?://www\\.dropbox\\.com/.*",        site:"Dropbox"},
+    {re:"^https?://drive\\.google\\.com/.*",       site:"Google Drive"},
+    {re:"^https?://docs\\.google\\.com/.*",        site:"Google Docs"},
+    {re:"^https?://[^.]+\\.deviantart\\.com/.*",   site:"DeviantArt"},
+    {re:"^https?://fav\\.me/.*",                   site:"DeviantArt"},
+    {re:"^https?://lenslyrics\\.ml/.*",            site:"Len's Lyrics"},
+    {re:"^https?://pan\\.baidu\\.com/\\.*",        site:"Baidu"},
+    {re:"^https?://5sing\\.kugou\\.com/.*",        site:"5Sing"},
+    ]);
+
+const languages =
+  [
+  {name:"English"},  
+  {name:"Japanese", transliteration:"Romaji"},
+  {name:"Chinese", transliteration:"Pinyin"},
+  {name:"Korean", transliteration:"Romaja"},
+  {name:"Spanish"},
+  {name:"Acehnese"},
+  {name:"Catalan"},
+  {name:"Cantonese", transliteration:"Jyutping"},
+  {name:"Dutch"},
+  {name:"Esperanto"},
+  {name:"Filipino"},
+  {name:"Finnish"},
+  {name:"French"},
+  {name:"German"},
+  {name:"Greek", transliteration:"Romanization"},
+  {name:"Indonesian"},
+  {name:"Irish"},
+  {name:"Italian"},
+  {name:"Latin"},
+  {name:"Malay"},
+  {name:"Polish"},
+  {name:"Portuguese"},
+  {name:"Romanian"},
+  {name:"Russian", transliteration:"Romanization"},
+  {name:"Sundanese"},
+  {name:"Swedish"},
+  {name:"Thai", transliteration:"Romanization"},
+  {name:"Turkish"},
+  {name:"Vietnamese"},
+  {name:"Welsh"},
+  ];
+
+/*
+ * Global references to custom spreadsheet input tables
+ */
+let lyricsTable = jspreadsheet(document.getElementById("lyricstable"));
+let playLinksTable = jspreadsheet(document.getElementById("playlinks"));
+let extLinksTable = jspreadsheet(document.getElementById("extlinks"));
+const playLinks_init = [
+    ["Niconico", "", false, false, false,""],
+    ["bilibili", "", false, false, false,""],
+    ["YouTube", "", false, false, false,""],
+    ["Bandcamp", "", false, false, false,""],
+    ["SoundCloud", "", false, false, false,""]
+  ];
+let arrFeaturingOtherSynths = new Set();
+
+/*
+ * Obtain contents of a text field as input by the user. Trimmed.
+ */
+function read_text(fieldname)
+{
+ return document.getElementById(fieldname).value.trim();
+}
+
+/*
+ * Obtain contents of a textbox field as input by the user
+ * split into an array of lines. Trimmed. Empty lines removed.
+ */
+function read_textbox(fieldname)
+{
+ return document.getElementById(fieldname).value.split("\n").map(x => x.trim()).filter(x => x);
+}
+
+/*
+ * Return whether or not a string is a valid CSS colour.
+ */
+function validate_colour(colour)
+{
+ return colour == "" || colour.match("^#[0-9a-f]{6}$") || colournames.indexOf(colour) >= 0;
+}
+
+/*
+ * Give a warning message.
+ */
+function show_warning(message)
+{
+  let warnings = document.getElementById("warnings");
+  warnings.innerHTML += "<p>" + message + "</p>";
+}
+
+/*
+ * Clear the song page form and reset various elements in the HTML doc
+ */
+function more_resets()
+{
+ document.getElementById("songpageform").reset();
+ document.getElementById("gcontent").checked = true;
+ error_resets();
+
+ //Hide certain rows
+ document.getElementById("output").innerHTML = "";
+ document.getElementById("thumbrowinner").innerHTML = "";
+
+ //Clear custom spreadsheet tables
+ arrFeaturingOtherSynths = new Set();
+ setLyricsTable(true,true);
+ lyricsTable.setData([...Array(30)].map(e => Array(3).fill("")));
+ playLinksTable.setData(playLinks_init);
+ extLinksTable.setData([["",""],["",""],["",""],["",""],["",""]]);
+}
+
+/*
+ * Identify a website from its URL.
+ * Return site name, or "(unidentified website)" if not recognized.
+ */
+function identify_website(linkurl)
+{
+ for (let i = 0; i < listRecognizedLinks.length; ++i)
+ {
+  if (linkurl.match(listRecognizedLinks[i].re))
+   return listRecognizedLinks[i].site;
+ }
+ return "";
+}
+
+/*
+ * Populate dropdown box: Wiki Template List
+ */
+function populate_wikitemplate_list()
+{
+ let wtl = document.getElementById("wikitemplatelist");
+ wtl.innerHTML += "<option value=\"0\">Choose a wiki template</option>";
+ for (let i = 0; i < wikitemplates.length; ++i)
+  wtl.innerHTML += "<option value=\"" + i + "\">" + wikitemplates[i] + "</option>";
+}
+
+/*
+ * Populate dropdown box: Language List
+ */
+function populate_language_list()
+{
+ let ll = document.getElementById("languagelist");
+ ll.innerHTML += "<option value=\"0\">Choose language</option>";
+ for (let i = 0; i < languages.length; ++i)
+ {
+  ll.innerHTML += "<option value=\"" + i + "\">" + languages[i].name + "</option>";
+ }
+}
+
+/*
+ * Event handler: Colour picker
+ */
+function color_changed(id)
+{
+ document.getElementById(id).value = document.getElementById(id + "picker").value;
+}
+
+/*
+ * Event handler: User has chosen a language
+ */
+function set_language()
+{
+ let language = document.getElementById("languagelist").selectedIndex - 1;
+ let isLangEnglish = language == 0;
+
+ //Show/hide translated title field
+ if (isLangEnglish) {document.getElementById("translatedtitlerow").style.display = "none";}
+ else {document.getElementById("translatedtitlerow").style.display = "";}
+
+//Show/hide transliterated title field
+ if (language < 0 || "transliteration" in languages[language])
+ {
+  document.getElementById("romajititlerow").style.display = "";
+  setLyricsTable(true, !isLangEnglish);
+ }
+ else
+ {
+  document.getElementById("romajititlerow").style.display = "none";
+  setLyricsTable(false, !isLangEnglish);
+ }
+ 
+ //DEPRECATED: Automatically add language category
+ //if (document.getElementById("categories").value != "") {document.getElementById("categories").value += "\n";};
+ //document.getElementById("categories").value += languages[language].name + " original songs";
+}
+
+/*
+ * Code to set the lyrics table when the page is made or every time the language is changed.
+ * Try to preserve data where possible.
+ */
+function setLyricsTable(showTranslitLyrics, showTranslatedLyrics)
+{
+
+  let numColumns = 2;
+  if (showTranslitLyrics) {numColumns++;};
+  if (showTranslatedLyrics) {numColumns++;};
+
+  //Copy the existing data (original lyrics + translated lyrics) in the loaded lyrics table
+  //lyricsTable = jspreadsheet(document.getElementById("lyricstable"));  
+  let lyricsTable_numColumns = 0;
+  let copiedToTableData = [];
+  try {
+    lyricsTable_numColumns = lyricsTable.getConfig().colWidths.length;
+    let origLyricsData = lyricsTable.getColumnData(1).slice();
+    let translatedLyricsData = lyricsTable.getColumnData(lyricsTable_numColumns-1).slice();
+    copiedToTableData = [...Array(origLyricsData.length)].map(e => Array(numColumns).fill(""));
+    let i = 0;
+    origLyricsData.forEach(lyricsRow => {
+      copiedToTableData[i][0] = lyricsRow;
+      if (numColumns > 1 && lyricsTable_numColumns > 1) {copiedToTableData[i][numColumns-1] = translatedLyricsData[i];};
+      i++;
+    });
+  } 
+  catch (error) { 
+    console.log("Error: Cannot get lyrics data");
+  }
+
+  //Remake the table if needed
+  if (lyricsTable_numColumns !== numColumns)
+    {
+
+    jexcel.destroy(document.getElementById("lyricstable"), false);
+    
+    let columns = [];
+    columns.push({ type: "text", title: "Text colour", width: 100 });
+    let widthcolumn = 900 / numColumns;
+    columns.push({ type: "text", title: "Original Lyrics", width: widthcolumn });
+    if (showTranslitLyrics) {columns.push({ type: "text", title: "Transliterated Lyrics", width: widthcolumn });}
+    if (showTranslatedLyrics) {columns.push({ type: "text", title: "Translated Lyrics", width: widthcolumn });}
+
+    lyricsTable = jspreadsheet(document.getElementById("lyricstable"), {
+      columns: columns,
+      colAlignments: Array(numColumns).fill("left"),
+      columnSorting: false,
+      allowInsertRow: true,
+      allowManualInsertRow: true,
+      allowInsertColumn: false,
+      allowManualInsertColumn: false,
+      allowDeleteRow: true,
+      allowDeleteColumn: false,
+      wordWrap: true,
+      minDimensions: [numColumns,1],
+      data: copiedToTableData
+      //data: [...Array(30)].map(e => Array(numColumns).fill(""))
+    });
+
+  }
+}
+
+</script>
+<style>
+body {
+ font-family: sans-serif;
+ color: navy;
+}
+td.caption {
+ text-align: right;
+ vertical-align: top;
+}
+span.tooltip {
+ visibility: hidden;
+ background-color: navy;
+ color: white;
+ padding: 5px;
+ border-radius: 4px;
+ font-size: 10pt;
+ position: absolute;
+ z-index: 10;
+}
+span.tooltip table {
+ color: white;
+ font-size: 10pt;
+ z-index: 10;
+}
+span.info {
+ font-size: 14pt;
+ color: navy;
+}
+span.info:hover span.tooltip {
+ visibility: visible;
+}
+.texterror {
+ color: red;
+ border-color: red;
+}
+div.errors {
+ color: red;
+}
+div.warnings {
+ color: darkorange;
+}
+</style>
+</head>
+<body>
+<h1>Song page generator for Vocaloid Lyrics Wiki</h1>
+<form onSubmit="return false;" id="songpageform"></form>
+<table>
+  <tr>
+    <td class=caption style="font-size: 14pt">Pre-load from <br>VocaDB page:<br><span class=info>&#x1F6C8;<span class=tooltip>Input URL to VocaDB song page here.<br>e.g. https://vocadb.net/S/1501 Rolling Girl</span></span></td>
+    <td colspan="3">
+      <input type=text id=preloadfromurl size="70"></input> 
+      <button onclick="if (confirm('This will clear all inputted data. Continue?')) {more_resets(); importFromVocaDB();}">Preload</button>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="4"><hr></td>
+  </tr>
+  <tr id=thumbrow>
+    <td class=caption style="font-size: 14pt">PV Thumbnails:<br><span class=info>&#x1F6C8;<span class=tooltip>Save PV stills as local file<br><br>May fail to get working HQ images for older songs.</span></span></td>
+    <td colspan="3"><div id=thumbrowinner></div></td>
+  </tr>
+  <tr id=wikitemplaterow>
+    <td class=caption style="font-size: 14pt">Create page <br>for lyrics wiki:<br><span class=info>&#x1F6C8;<span class=tooltip>Choose the wiki for which the song page is made</span></span></td>
+    <td colspan="3" style="font-size: 14pt"><select id=wikitemplatelist></select> </td>
+  </tr>
+  <tr>
+    <td colspan="4"><hr></td>
+  </tr>
+  <tr>
+    <td class=caption>Content Warnings:<br><span class=info>&#x1F6C8;<span class=tooltip>Add content warning at top of page</span></span></td>
+    <td><input type="radio" id=questionablecontent name="generalcontent" value="Questionable" form="songpageform"><label for="Questionable">Questionable</label></td>
+    <td><input type="radio" id=explicitcontent name="generalcontent" value="Explicit" form="songpageform"><label for="Explicit">Explicit</label></td>
+    <td><input type="radio" id=gcontent name="generalcontent" value="Neither" form="songpageform" checked=true><label for="Neither">Neither</label></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td colspan="3">
+      <input type="checkbox" id=epilepticcontent name="epilepticcontent" value="Epilepsy" form="songpageform"><label for="epilepticcontent">Epilepsy</label>
+    </td>
+  </tr>
+  <tr>
+    <td class=caption>Song language:<br><span class=info>&#x1F6C8;<span class=tooltip>Language of song lyrics</span></span></td>
+    <td colspan="3"><select id=languagelist onchange="set_language()" form="songpageform"></select></td>
+  </tr>
+  <tr>
+    <td class=caption>Original title:<br><span class=info>&#x1F6C8;<span class=tooltip>Song title in original language<br>(required)</span></span></td>
+    <td colspan="3"><input type=text id=originaltitle size="82" form="songpageform"></input></td>
+  </tr>
+  <tr id=romajititlerow>
+    <td class=caption>Transliterated title:<br><span class=info>&#x1F6C8;<span class=tooltip>Transliterated song title<br>(if non-English original)</span></span></td>
+    <td colspan="3"><input type=text id=romajititle size="82" form="songpageform"></input></td>
+  </tr>
+  <tr id=translatedtitlerow>
+    <td class=caption>Translated title:<br><span class=info>&#x1F6C8;<span class=tooltip>Song title translated to English<br>(if non-English original)</span></span></td>
+    <td colspan="3"><input type=text id=translatedtitle size="82" form="songpageform"></input></td>
+  </tr>
+  <tr>
+    <td colspan="4"><hr></td>
+  </tr>
+  <tr>
+    <td class=caption>Infobox bg/fg colour:<br><span class=info>&#x1F6C8;<span class=tooltip>Infobox background (left) and foreground (right) colour<br>hexadecimal colour, e.g., #ff0000<br><em>or</em><br>colour name, e.g., red</span></span></td>
+    <td width="250px"><input type=text id=bgcolour size="7" value="black" form="songpageform"/> <input type=color id=bgcolourpicker value="#000000" style="width:45px" onchange="color_changed('bgcolour')" form="songpageform"/> </td>
+    <td width="250px"><input type=text id=fgcolour size="7" value="white" form="songpageform"/> <input type=color id=fgcolourpicker value="#ffffff" style="width:45px" onchange="color_changed('fgcolour')" form="songpageform"/></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td class=caption>Upload date:<br><span class=info>&#x1F6C8;<span class=tooltip>Date of publication</span></span></td>
+    <td colspan="3"><input type="date" id=uploaddate form="songpageform"></input></td>
+  </tr>
+  <tr>
+    <td class=caption>Singer(s):<br><span class=info>&#x1F6C8;<span class=tooltip>Markup for singer(s), e.g.:<br>[[Kagamine Rin]] and [[Kagamine Len]]<hr>(required)</span></span></td>
+    <td colspan="3"><textarea id=singer cols="80" rows="2" form="songpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td class=caption>Producer(s):<br><span class=info>&#x1F6C8;<span class=tooltip>Markup for producer(s), one per line, e.g.:<br>[[Tanaka Kazuto]] (music, lyrics)<br>Pikucha (illus.)<hr>(required)</span></span></td>
+    <td colspan="3"><textarea id=producers cols="80" rows="5" form="songpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td class=caption>Description:<br><span class=info>&#x1F6C8;<span class=tooltip>Background information about the song.</span></span></td>
+    <td colspan="3"><textarea id=description cols="80" rows="5" form="songpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td colspan="4"><hr></td>
+  </tr>
+  <tr>
+    <td class=caption id=playlinkscaption>Play links:<br><span class=info>&#x1F6C8;<span class=tooltip>Links to play song, one per line<br>Recognized links: youtu.be, youtube.com, nicovideo.jp, piapro.jp, soundcloud.com, bandcamp.com, vimeo.com, bilibili.com<br><br>Add, delete, or drag rows as you please<br>Double click to change options on dropdown box</span></span></td>
+    <td colspan="3">
+      <div id=playlinks tabindex="1" class="jexcel_container">    </div>
+      </td>
+  </tr>
+  <tr>
+    <td colspan="4"><hr></td>
+  </tr>
+  <tr>
+    <td colspan="4" class=caption style="font-size: 18pt; text-align: center;" id=lyricstablecaption>Lyrics  <span class=info>&#x1F6C8;<span class=tooltip>Copy & paste original, transliterated and translated lyrics here<br>Add, delete, or drag rows as you please<br>Add text colour styling to the entire row by specifying the hexadecimal colour, e.g., #ff0000<br><em>or</em><br>colour name, e.g., red</span></span></td>
+  </tr>
+  <tr>
+    <td colspan="4">
+      <table>
+        <tr>
+        <td width="50px"> </td>
+        <td><div id=lyricstable tabindex="1" class="jexcel_container">    </div></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class=caption>Translator<br><span class=info>&#x1F6C8;<span class=tooltip>Translator's name</span></span></td>
+    <td colspan="2"><input type=text id=translator size="50" form="songpageform"></input></td>
+    <td><input type=checkbox id=officialtranslation form="songpageform">Official translation</input> <span class=info>&#x1F6C8;<span class=tooltip>Is the translation approved by the producer?</span></span></td>
+  </tr>
+  <tr>
+    <td colspan="4"><hr></td>
+  </tr>
+  <tr>
+    <td class=caption>External links<br><span class=info>&#x1F6C8;<span class=tooltip>Links to related web pages, one per line, with description, e.g.:<br>https://piapro.jp/t/uvwx Off-vocal<br>Recognizes many commonly used sites such as Hatsune Miku Wiki and VocaDB<br><br>Add, delete, or drag rows as you please</span></span></td>
+    <td colspan="3">
+      <div id=extlinks tabindex="1" class="jexcel_container">    </div>
+    </td>
+  </tr>
+  <tr>
+    <td class=caption>Categories<br><span class=info>&#x1F6C8;<span class=tooltip>Category names, one per line, e.g.:<br>Vocaloid original songs<hr>Click the Autoload button to have the site generate commonly used tags</span></span></td>
+    <td colspan="3"><textarea id=categories cols="70" rows="5" form="songpageform"></textarea>  <button form="songpageform" onclick="autoloadCategories();">Autoload</button></td>
+  </tr>
+  <tr>
+    <td colspan="4"><br><hr><br></td>
+  </tr>
+  <tr>
+    <td><br></td>
+    <td>
+      <button form="songpageform" onclick="if (confirm('This will clear all inputted data. Continue?')) {more_resets();}">Reset</button>
+    </td>
+    <td colspan="2">
+      <button form="songpageform" onclick="generateSongPage();" style="width: 150px;">Generate</button>
+      <input type=checkbox id=ignoreerrors form="songpageform">ignore errors</input>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="4"><br><hr><br></td>
+  </tr>
+</table>
+
+<div id=errors class=errors></div>
+<div id=warnings class=warnings></div>
+<table>
+  <tr>
+    <td colspan="2" class=caption style="font-size: 20pt; text-align: center;">Results</td>
+  </tr>
+  <tr>
+    <td colspan="2" id=pagetitle class=caption style="text-align: center;"></td>
+  </tr>
+  <tr>
+    <td width="50px"> </td>
+    <td><textarea readonly=readonly id=output cols="120" rows="40"></textarea></td>
+  </tr>
+</table>
+<p style="font-size: 8pt">Author: CoolMikeHatsune22 based on earlier work by <a href="https://vocaloidlyrics.fandom.com/wiki/User:ElectricRaichu">ElectricRaichu</a> and <a href="http://vocaloidlyrics.wikia.com/wiki/User:Nefere">Nefere</a>.<br>Re-use and modification permitted; please credit original creators.</p>
+
+<script>
+populate_wikitemplate_list();
+populate_language_list();
+
+//Initialize lyrics input table
+lyricsTable = jspreadsheet(document.getElementById("lyricstable"), {
+  columns: [
+    { type: "text", title: "Text colour", width: 100 },
+    { type: "text", title: "Original Lyrics", width: 300 },
+    { type: "text", title: "Transliterated Lyrics", width: 300 },
+    { type: "text", title: "Translated Lyrics", width: 300 }
+  ],
+  colAlignments: ["left", "left", "left", "left"],
+  columnSorting: false,
+  allowInsertRow: true,
+  allowManualInsertRow: true,
+  allowInsertColumn: false,
+  allowManualInsertColumn: false,
+  allowDeleteRow: true,
+  allowDeleteColumn: false,
+  wordWrap: true,
+  minDimensions: [4,1],
+  data: [...Array(30)].map(e => Array(4).fill(""))
+});
+
+//Event handling for play links and external links input table: automatically detect the website in the URL
+let changed = function(instance, cell, col, row, value) {
+  try {
+    if (col==0 && value.trim() !== "") {
+      let siteurl = value;
+      let sitename = identify_website(siteurl);
+      //console.log(siteurl, sitename);
+      extLinksTable.setValueFromCoords(col+1, row, sitename);
+    }
+  }
+  catch (error) {}
+};
+
+//Initialize play links input table
+playLinksTable = jspreadsheet(document.getElementById("playlinks"), {
+  data: playLinks_init,
+  columns: [
+    { type: "dropdown", title: "Site", width: 200, source: ["Niconico", "bilibili", "YouTube", "Vimeo", "Bandcamp", "piapro", "SoundCloud", "Netease", "Creofuga"] },
+    { type: "text", title: "URL", width: 250 },
+    { type: "checkbox", title: "Reprint?", width: 80 },
+    { type: "checkbox", title: "Auto-gen?", width: 80 },
+    { type: "checkbox", title: "Deleted?", width: 80 },
+    { type: "text", title: "View count", width: 80 }
+  ],
+  colAlignments: ["left", "left", "center", "center", "center", "left"],
+  columnSorting: false,
+  allowInsertRow: true,
+  allowManualInsertRow: true,
+  allowInsertColumn: false,
+  allowManualInsertColumn: false,
+  allowDeleteRow: true,
+  allowDeleteColumn: false,
+  rowDrag: true,
+  onchange: changed
+});
+
+//Initialize external links input table
+extLinksTable = jspreadsheet(document.getElementById("extlinks"), {
+  data: [["",""],["",""],["",""],["",""],["",""]],
+  columns: [
+    { type: "text", title: "URL", width: 500 },
+    { type: "text", title: "Description", width: 400 }
+  ],
+  colAlignments: ["left", "left"],
+  columnSorting: true,
+  rowDrag: true,
+  allowInsertRow: true,
+  allowManualInsertRow: true,
+  allowInsertColumn: false,
+  allowManualInsertColumn: false,
+  allowDeleteRow: true,
+  allowDeleteColumn: false,
+  //minDimensions: [2,5],
+  onchange: changed
+});
+
+//Hide certain rows
+document.getElementById("wikitemplaterow").style.display = "none";
+document.getElementById("thumbrow").style.display = "none";
+
+//document.getElementById("preloadfromurl").value = "https://vocadb.net/S/1501";
+
+</script>
+</body>
+</html>
