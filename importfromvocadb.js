@@ -106,7 +106,7 @@ async function importFromVocaDB() {
                 case "Other":
                     //artistCredit = artist.name;
                     artistCredit = "";
-                    arrArtistRoles = artist.roles.split(", ");
+                    arrArtistRoles = artist.effectiveRoles.split(", ");
                     arrArtistRoles.forEach(artistRole => {
                         switch(artistRole) {
                             case "Default":
