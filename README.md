@@ -9,6 +9,7 @@ Song page generator for <a href="https://vocaloidlyrics.fandom.com/">Vocaloid Ly
 <br>Follows a set template and automates everything for the convenience of the end-user. 
 
 <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator">[GitHub Repository]</a>
+<a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/main.html">[Page]</a>
 
 Referenced libraries:
  - <a href="https://github.com/jspreadsheet/ce">JSpreadsheet</a>
