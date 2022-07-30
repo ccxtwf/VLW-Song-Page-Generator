@@ -227,6 +227,12 @@ function generateLyrics() {
   let rowRomLyrics = "";
   let rowEngLyrics = "";
   let rowStyling = "";
+  let setLyricsColours = new Set();
+
+  const singingPartsTemplate = `{| border="1" cellpadding="4" style="border-collapse:collapse; border:1px groove; line-height:1.5"
+!style="background-color:white; color:black"|Singer
+#SINGING_PARTS
+|}`
 
   if (language == 0) {
     //Song is English
@@ -235,8 +241,10 @@ function generateLyrics() {
       //Colour per segment of lyrics
       for (let i = 0; i < arrDataLyrics.length; i++) {
         rowEngLyrics = arrDataLyrics[i][1].toString().trim();
+        if (arrDataLyrics[i][0].toString().trim() == "") {setLyricsColours.add("");};
         if (rowStyling !== arrDataLyrics[i][0].toString().trim() && validate_colour(arrDataLyrics[i][0].toString().trim())) {
           rowStyling = arrDataLyrics[i][0].toString().trim();
+          setLyricsColours.add(rowStyling);
           if (rowStyling !== "") {rowEngLyrics = "<span style=\"color:" + rowStyling + "\">" + rowEngLyrics;};
         }
         if (rowStyling !== "" && (i == arrDataLyrics.length-1 || rowStyling !== arrDataLyrics[i+1][0].toString().trim())) {
@@ -283,6 +291,7 @@ function generateLyrics() {
 
         //Add styling
         rowStyling = rowLyrics[0].toString().trim();
+        setLyricsColours.add(rowStyling);
         if (rowStyling !== "" && validate_colour(rowStyling)) {
           strLyricsTable += " style=\"color:" + rowStyling + "\"";
         }
@@ -317,6 +326,21 @@ function generateLyrics() {
 
     //Close the wiki table
     strLyricsTable += "|}";
+
+    //Add a box identifying each coloured part
+    if (setLyricsColours.size > 1) {
+      let singingParts = "";
+      setLyricsColours.forEach (function(lyricsColour) {
+        if (lyricsColour == "") {
+          singingParts += "|" + "All" + "\n";
+        }
+        else {
+          singingParts += "|<span style=\"color:" + lyricsColour + "\">" + "Singer" + "</span>\n";
+        }
+      })
+      singingParts = singingPartsTemplate.replace("#SINGING_PARTS", singingParts);
+      strLyricsTable = singingParts + "\n" + strLyricsTable;
+    }
 
     //Add translator credit
     if (bTranslationExists) {
