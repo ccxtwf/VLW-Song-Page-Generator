@@ -201,8 +201,9 @@ function more_resets()
  document.getElementById("gcontent").checked = true;
  error_resets();
 
- //Hide certain rows
+ //Reset output
  document.getElementById("output").innerHTML = "";
+ document.getElementById("pagetitle").innerHTML = "";
  document.getElementById("thumbrowinner").innerHTML = "";
 
  //Clear custom spreadsheet tables
@@ -342,6 +343,7 @@ function setLyricsTable(showTranslitLyrics, showTranslatedLyrics)
       allowManualInsertColumn: false,
       allowDeleteRow: true,
       allowDeleteColumn: false,
+      allowRenameColumn: false,
       wordWrap: true,
       minDimensions: [numColumns,1],
       data: copiedToTableData
@@ -570,6 +572,7 @@ lyricsTable = jspreadsheet(document.getElementById("lyricstable"), {
   allowManualInsertColumn: false,
   allowDeleteRow: true,
   allowDeleteColumn: false,
+  allowRenameColumn: false,
   wordWrap: true,
   minDimensions: [4,1],
   data: [...Array(30)].map(e => Array(4).fill(""))
@@ -607,6 +610,7 @@ playLinksTable = jspreadsheet(document.getElementById("playlinks"), {
   allowManualInsertColumn: false,
   allowDeleteRow: true,
   allowDeleteColumn: false,
+  allowRenameColumn: false,
   rowDrag: true,
   minDimensions: [6,0],
   onchange: changed
@@ -628,6 +632,7 @@ extLinksTable = jspreadsheet(document.getElementById("extlinks"), {
   allowManualInsertColumn: false,
   allowDeleteRow: true,
   allowDeleteColumn: false,
+  allowRenameColumn: false,
   //minDimensions: [2,5],
   onchange: changed
 });
