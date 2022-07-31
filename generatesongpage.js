@@ -384,6 +384,7 @@ function generateLyrics() {
 }
 
 function generateExternalLinks() {
+  console.log("PASSED");
   let strWikiExternalLinks = "";
   if (Array.isArray(arrDataExtLinks) && arrDataExtLinks.length) {
     let strExtLink = "";
