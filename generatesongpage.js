@@ -384,6 +384,7 @@ function generateLyrics() {
 }
 
 function generateExternalLinks() {
+  let strWikiExternalLinks = "";
   if (Array.isArray(arrDataExtLinks) && arrDataExtLinks.length) {
     let strExtLink = "";
 
@@ -393,8 +394,8 @@ function generateExternalLinks() {
     let page = "";
 
     let bExtLinkExists = arrDataExtLinks.some(function (extLink) {return extLink[0].trim() !== "";});;
-    if (!bExtLinkExists) {return ""};
-    let strWikiExternalLinks = "==External Links==";
+    if (!bExtLinkExists) {return strWikiExternalLinks};
+    strWikiExternalLinks = "==External Links==";
 
     arrDataExtLinks.forEach(extLink => {
       url = extLink[0];
