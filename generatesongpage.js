@@ -220,10 +220,13 @@ function generateLyrics() {
   let language = document.getElementById("languagelist").selectedIndex - 1;
   let bTranslationExists = false;
   let bTranslationNotesExist = false;
+  let bTranslationIsOfficial = document.getElementById("officialtranslation").checked;
+  let bLyricsAreRomanized = false;
   let translatorName = read_text("translator").toString();
   let translatorLicense = get_translator_license(translatorName);
 
   let numColumns = 0;
+  let wikiNumColumns = 0;
   let rowOrigLyrics = "";
   let rowRomLyrics = "";
   let rowEngLyrics = "";
@@ -270,8 +273,12 @@ function generateLyrics() {
       });
     }
 
-    //Check if translation is approved
-    let bTranslationIsOfficial = document.getElementById("officialtranslation").checked;
+    //TODO: Tweak to only add English column if a translation exists
+    wikiNumColumns = numColumns - 1;
+    if (!bTranslationExists && false) {wikiNumColumns = wikiNumColumns - 1;};
+
+    //Check if lyrics are romanized
+    bLyricsAreRomanized = (language == -1 || "transliteration" in languages[language]);
 
     //Add wiki table headers
     strLyricsTable = "{| style='width:100%'\n";
@@ -280,14 +287,18 @@ function generateLyrics() {
       strLyricsTable += "|'''''Original'''''\n";
       strLyricsTable += "|'''''Romanized'''''\n"
     }
-    else if ("transliteration" in languages[language]) {
-      //Add romanized lyrics column
+    else {
       strLyricsTable += "|'''''" + languages[language].name + "'''''\n";
-      strLyricsTable += "|'''''" + languages[language].transliteration + "'''''\n"
+      //Add romanized lyrics column
+      if (bLyricsAreRomanized) {
+        strLyricsTable += "|'''''" + languages[language].transliteration + "'''''\n"
+      };
     };
-    //TODO: Add if statement to only add English column if a translation exists
-    if (bTranslationIsOfficial) {strLyricsTable += "|{{OfficialEnglish}}\n";}
-    else {strLyricsTable += "|'''''English'''''\n"};
+    //TODO: Tweak to only add English column if a translation exists
+    if (bTranslationExists || true) {
+      if (bTranslationIsOfficial) {strLyricsTable += "|{{OfficialEnglish}}\n";}
+      else {strLyricsTable += "|'''''English'''''\n"};
+    };
 
     //Combine table in the case where the language is not English
     if (Array.isArray(arrDataLyrics) && arrDataLyrics.length) {
@@ -304,10 +315,9 @@ function generateLyrics() {
         
         //Get lyrics
         rowOrigLyrics = rowLyrics[1].toString().trim();
-        if (language == -1 || "transliteration" in languages[language]) {rowRomLyrics = rowLyrics[2].toString().trim();}
+        if (bLyricsAreRomanized) {rowRomLyrics = rowLyrics[2].toString().trim();}
         else {rowRomLyrics = rowOrigLyrics;}
         rowEngLyrics = rowLyrics[numColumns - 1].toString().trim();
-        //TODO: Add if statement to only add English column if a translation exists
         
         //Add blank line if detected
         if (rowOrigLyrics == "" && rowRomLyrics == "" && rowEngLyrics == "") {
@@ -315,16 +325,19 @@ function generateLyrics() {
         }
 
         //Merge the columns if they have identical text
-        else if ((bTranslationExists && rowOrigLyrics == rowRomLyrics && rowOrigLyrics == rowEngLyrics) || (!bTranslationExists && numColumns == 3 && rowOrigLyrics == rowRomLyrics)) {
-          strLyricsTable += "| {{shared|" + (numColumns-1) + "}} style=\"font-style:italic; font-weight:bold; text-align:center;\" |" + rowOrigLyrics + "\n";
+        else if (
+          (bLyricsAreRomanized && bTranslationExists && rowOrigLyrics == rowRomLyrics && rowOrigLyrics == rowEngLyrics) ||
+          (bLyricsAreRomanized && !bTranslationExists && rowOrigLyrics == rowRomLyrics) ||
+          (!bLyricsAreRomanized && bTranslationExists && rowOrigLyrics == rowEngLyrics)) {
+            strLyricsTable += "| {{shared|" + wikiNumColumns + "}} style=\"font-style:italic; font-weight:bold; text-align:center;\" |" + rowOrigLyrics + "\n";
         }
 
         //Add each line otherwise
-        //TODO: Add if statement to only add English column if a translation exists
+        //TODO: Tweak to only add English column if a translation exists
         else {
           strLyricsTable += "|" + rowOrigLyrics + "\n";
-          strLyricsTable += "|" + rowRomLyrics + "\n";
-          strLyricsTable += "|" + rowEngLyrics + "\n";
+          if (bLyricsAreRomanized) {strLyricsTable += "|" + rowRomLyrics + "\n";};
+          if (bTranslationExists || true) {strLyricsTable += "|" + rowEngLyrics + "\n";};
         }
       });
     }
@@ -366,6 +379,7 @@ function generateLyrics() {
   
   strWikiLyrics += strLyricsTable; 
   return strWikiLyrics;
+
 }
 
 function generateExternalLinks() {
