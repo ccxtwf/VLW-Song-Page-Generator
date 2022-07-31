@@ -219,6 +219,7 @@ function generateLyrics() {
 
   let language = document.getElementById("languagelist").selectedIndex - 1;
   let bTranslationExists = false;
+  let bTranslationNotesExist = false;
   let translatorName = read_text("translator").toString();
   let translatorLicense = get_translator_license(translatorName);
 
@@ -263,6 +264,10 @@ function generateLyrics() {
       numColumns = arrDataLyrics[0].length;
       bTranslationExists = arrDataLyrics.some(function (rowLyrics) {return rowLyrics[numColumns-1].trim() !== "";});
       //console.log("A translation exists: " + bTranslationExists);
+      //Check if translation notes exist
+      bTranslationNotesExist = arrDataLyrics.some(function (rowLyrics) {
+        return rowLyrics[numColumns-1].match(/<\/ref>/) || rowLyrics[numColumns-1].match(/<ref name.*>/);
+      });
     }
 
     //Check if translation is approved
@@ -352,6 +357,11 @@ function generateLyrics() {
       };
     };
 
+    //Add translation notes
+    if (bTranslationNotesExist) {
+      strLyricsTable += "\n\n" + "==Translation Notes==\n<references />"
+    }
+
   }
   
   strWikiLyrics += strLyricsTable; 
@@ -359,7 +369,6 @@ function generateLyrics() {
 }
 
 function generateExternalLinks() {
-  let strWikiExternalLinks = "==External Links==";
   if (Array.isArray(arrDataExtLinks) && arrDataExtLinks.length) {
     let strExtLink = "";
 
@@ -367,6 +376,10 @@ function generateExternalLinks() {
     let description = "";
     let wiki = "";
     let page = "";
+
+    let bExtLinkExists = arrDataExtLinks.some(function (extLink) {return extLink[0].trim() !== "";});;
+    if (!bExtLinkExists) {return ""};
+    let strWikiExternalLinks = "==External Links==";
 
     arrDataExtLinks.forEach(extLink => {
       url = extLink[0];
