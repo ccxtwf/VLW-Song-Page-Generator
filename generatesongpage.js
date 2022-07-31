@@ -214,6 +214,7 @@ function generateInfoBox() {
 }
 
 function generateLyrics() {
+  console.log("PASSED LYRICS");
   let strWikiLyrics = "==Lyrics==\n";
   let strLyricsTable = "";
 
@@ -384,7 +385,7 @@ function generateLyrics() {
 }
 
 function generateExternalLinks() {
-  console.log("PASSED");
+  console.log("PASSED EXT LINKS");
   let strWikiExternalLinks = "";
   if (Array.isArray(arrDataExtLinks) && arrDataExtLinks.length) {
     let strExtLink = "";
