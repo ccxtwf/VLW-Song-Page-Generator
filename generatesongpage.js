@@ -417,7 +417,7 @@ function generateExternalLinks() {
       }
       else {
         strExtLink = "*[" + url + " " + description + "]";
-      }
+      };
       strWikiExternalLinks = addItemToListString(strExtLink, strWikiExternalLinks, "\n");
     });
   }
