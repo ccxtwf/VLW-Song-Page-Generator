@@ -306,15 +306,17 @@ function setLyricsTable(showTranslitLyrics, showTranslatedLyrics)
   let copiedToTableData = [];
   try {
     lyricsTable_numColumns = lyricsTable.getConfig().colWidths.length;
+    let stylingLyricsData = lyricsTable.getColumnData(0).slice();
     let origLyricsData = lyricsTable.getColumnData(1).slice();
     let translatedLyricsData = lyricsTable.getColumnData(lyricsTable_numColumns-1).slice();
     copiedToTableData = [...Array(origLyricsData.length)].map(e => Array(numColumns).fill(""));
-    let i = 0;
-    origLyricsData.forEach(lyricsRow => {
-      copiedToTableData[i][1] = lyricsRow;
-      if (numColumns > 2 && lyricsTable_numColumns > 2) {copiedToTableData[i][numColumns-1] = translatedLyricsData[i];};
-      i++;
-    });
+    for (let i = 0; i < origLyricsData.length; i++) {
+      copiedToTableData[i][0] = stylingLyricsData[i];
+      copiedToTableData[i][1] = origLyricsData[i];
+      if (numColumns > 2 && lyricsTable_numColumns > 2) {
+        copiedToTableData[i][numColumns-1] = translatedLyricsData[i];
+      };
+    }
   } 
   catch (error) { 
     console.log("Error: Cannot get lyrics data");
@@ -550,7 +552,7 @@ div.warnings {
     <td><textarea readonly=readonly id=output cols="120" rows="40"></textarea></td>
   </tr>
 </table>
-<p style="font-size: 8pt">Author: <a href="https://coolmikehatsune22.wordpress.com/about-me/">CoolMikeHatsune22</a> based on earlier work by <a href="https://vocaloidlyrics.fandom.com/wiki/User:ElectricRaichu">ElectricRaichu</a> and <a href="http://vocaloidlyrics.wikia.com/wiki/User:Nefere">Nefere</a>.<br>Re-use and modification permitted; please credit original creators.<br><br>Update code: GG564l</p>
+<p style="font-size: 8pt">Author: <a href="https://coolmikehatsune22.wordpress.com/about-me/">CoolMikeHatsune22</a> based on earlier work by <a href="https://vocaloidlyrics.fandom.com/wiki/User:ElectricRaichu">ElectricRaichu</a> and <a href="http://vocaloidlyrics.wikia.com/wiki/User:Nefere">Nefere</a>.<br>Re-use and modification permitted; please credit original creators.<br><br>Update code: NX0010</p>
 
 <script>
 populate_wikitemplate_list();

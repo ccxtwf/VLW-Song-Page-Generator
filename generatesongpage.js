@@ -245,10 +245,10 @@ function generateLyrics() {
       //Colour per segment of lyrics
       for (let i = 0; i < arrDataLyrics.length; i++) {
         rowEngLyrics = arrDataLyrics[i][1].toString().trim();
-        if (arrDataLyrics[i][0].toString().trim() == "") {setLyricsColours.add("");};
+        //if (arrDataLyrics[i][0].toString().trim() == "") {setLyricsColours.add("");};
         if (rowStyling !== arrDataLyrics[i][0].toString().trim() && validate_colour(arrDataLyrics[i][0].toString().trim())) {
           rowStyling = arrDataLyrics[i][0].toString().trim();
-          setLyricsColours.add(rowStyling);
+          if (rowEngLyrics !== "") {setLyricsColours.add(rowStyling);};
           if (rowStyling !== "") {rowEngLyrics = "<span style=\"color:" + rowStyling + "\">" + rowEngLyrics;};
         }
         if (rowStyling !== "" && (i == arrDataLyrics.length-1 || rowStyling !== arrDataLyrics[i+1][0].toString().trim())) {
@@ -307,7 +307,6 @@ function generateLyrics() {
 
         //Add styling
         rowStyling = rowLyrics[0].toString().trim();
-        setLyricsColours.add(rowStyling);
         if (rowStyling !== "" && validate_colour(rowStyling)) {
           strLyricsTable += " style=\"color:" + rowStyling + "\"";
         }
@@ -318,7 +317,7 @@ function generateLyrics() {
         if (bLyricsAreRomanized) {rowRomLyrics = rowLyrics[2].toString().trim();}
         else {rowRomLyrics = rowOrigLyrics;}
         rowEngLyrics = rowLyrics[numColumns - 1].toString().trim();
-        
+
         //Add blank line if detected
         if (rowOrigLyrics == "" && rowRomLyrics == "" && rowEngLyrics == "") {
           strLyricsTable += "|<br />\n"
@@ -329,12 +328,14 @@ function generateLyrics() {
           (bLyricsAreRomanized && bTranslationExists && rowOrigLyrics == rowRomLyrics && rowOrigLyrics == rowEngLyrics) ||
           (bLyricsAreRomanized && !bTranslationExists && rowOrigLyrics == rowRomLyrics) ||
           (!bLyricsAreRomanized && bTranslationExists && rowOrigLyrics == rowEngLyrics)) {
+            setLyricsColours.add(rowStyling);
             strLyricsTable += "| {{shared|" + wikiNumColumns + "}} style=\"font-style:italic; font-weight:bold; text-align:center;\" |" + rowOrigLyrics + "\n";
         }
 
         //Add each line otherwise
         //TODO: Tweak to only add English column if a translation exists
         else {
+          setLyricsColours.add(rowStyling);
           strLyricsTable += "|" + rowOrigLyrics + "\n";
           if (bLyricsAreRomanized) {strLyricsTable += "|" + rowRomLyrics + "\n";};
           if (bTranslationExists || true) {strLyricsTable += "|" + rowEngLyrics + "\n";};
@@ -356,7 +357,7 @@ function generateLyrics() {
           singingParts += "|<span style=\"color:" + lyricsColour + "\">" + "Singer" + "</span>\n";
         }
       })
-      singingParts = singingPartsTemplate.replace("#SINGING_PARTS", singingParts);
+      singingParts = singingPartsTemplate.replace("#SINGING_PARTS\n", singingParts);
       strLyricsTable = singingParts + "\n" + strLyricsTable;
     }
 
