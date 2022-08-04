@@ -33,6 +33,7 @@
         vertical-align: center;
     }
     /* table, th, td {border: 1px solid;} */
+    table, th, td {border: 1px solid;}
     button {
         color:navy;
         background-color: lightsteelblue;
@@ -122,6 +123,17 @@
             </td>
             <td></td>
             <td id="collyrics" style="vertical-align: top;"><br>
+                <table width=100%>
+                    <tr>
+                        <td width=34%><button onclick="togglevisibility('togglespecialcharacters');">Get special characters</button></td>
+                        <td><table width=100% id="togglespecialcharacters"><tr>
+                            <td width=33% style="text-align: center;">A: ā á ǎ à Ā Á Ǎ À<br>U: ū ú ǔ ù Ū Ú Ǔ Ù</td>
+                            <td width=33% style="text-align: center;">I: ī í ǐ ì Ī Í Ǐ Ì<br>Ü: ǖ ǘ ǚ ǜ Ǖ Ǘ Ǚ Ǜ</td>
+                            <td width=33% style="text-align: center;">E: ē é ě è Ē É Ě È<br>O: ō ó ǒ ò Ō Ó Ǒ Ò</td>
+                        </tr></table></tr></td>
+                    </tr>
+                </table>
+                <br>
                 <div id="lyricstable" tabindex="1" class="jexcel_container">    </div><br>
             </td>
         </tr>
@@ -226,6 +238,7 @@
 
     document.getElementById("checkshowengcolumn").checked = true;
     document.getElementById("tablestyle_span").checked = true;
+    document.getElementById("togglespecialcharacters").style.display = "none";
 
     function setFormattingMode() {
         if (document.getElementById("tablestyle_span").checked) {
@@ -234,6 +247,12 @@
         else {
             lyricsTable.setHeader(0, "LRC style");
         }
+    }
+
+    function togglevisibility(element) {
+        let displaymode = document.getElementById(element).style.display;
+        if (displaymode == "none") {document.getElementById(element).style.display = ""}
+        else {document.getElementById(element).style.display = "none"};
     }
 
     </script>

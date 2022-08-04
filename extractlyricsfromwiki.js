@@ -391,12 +391,14 @@ function actionable_removeTonesFromPinyin() {
       romLyrics = romLyrics.replace(/[ĀÁǍÀ]/gm, "A");
       romLyrics = romLyrics.replace(/[īíǐì]/gm, "i");
       romLyrics = romLyrics.replace(/[ĪÍǏÌ]/gm, "I");
-      romLyrics = romLyrics.replace(/[ūúǔùǖǘǚǜ]/gm, "u");
-      romLyrics = romLyrics.replace(/[ŪÚǓÙǕǗǙǛ]/gm, "U");
+      romLyrics = romLyrics.replace(/[ūúǔù]/gm, "u");
+      romLyrics = romLyrics.replace(/[ŪÚǓÙ]/gm, "U");
       romLyrics = romLyrics.replace(/[ēéěè]/gm, "e");
       romLyrics = romLyrics.replace(/[ĒÉĚÈ]/gm, "E");
       romLyrics = romLyrics.replace(/[ōóǒò]/gm, "o");
       romLyrics = romLyrics.replace(/[ŌÓǑÒ]/gm, "O");
+      romLyrics = romLyrics.replace(/[ǖǘǚǜ]/gm, "ü");
+      romLyrics = romLyrics.replace(/[ǕǗǙǛ]/gm, "Ü");
       arrRomLyrics[i] = romLyrics;
     };
   }
