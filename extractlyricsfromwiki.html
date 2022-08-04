@@ -96,6 +96,15 @@
     span.info:hover span.tooltip {
         visibility: visible;
     }
+    table.stick {
+        position:fixed;
+        top:0;
+        width:30%;
+        margin:10px 0 0;
+        background-color: white;
+        border: 2px solid navy;
+        padding: 2px;
+    }
 </style>
 <h1>Wiki Lyrics Editor</h1>
 <p style="font-size: 8pt">Specially made for the <a href="https://vocaloidlyrics.fandom.com/">Vocaloid Lyrics Wiki</a></p>
@@ -118,18 +127,37 @@
         <tr>
             <td class="div" style="vertical-align: top;"><br>
                 <div style="text-align: center; font-size: 10pt;" id="divselecttable">Table no.: <select id="dropdownselecttable"></select></div><br>
-                <textarea rows=42 cols=50 id="textboxsourcecode" onchange="detectWikiTables()"></textarea>
+                <table id="sticky"></table>
+                <textarea rows=50 cols=50 id="textboxsourcecode" onchange="detectWikiTables()"></textarea>
             </td>
             <td></td>
             <td id="collyrics" style="vertical-align: top;"><br>
                 <table width=100%>
                     <tr>
-                        <td width=34%><button onclick="togglevisibility('togglespecialcharacters');">Get special characters</button></td>
-                        <td><table width=100% id="togglespecialcharacters"><tr>
+                        <td width=34%><button id="buttonshowspecialchar" onclick="togglevisibility('buttonshowspecialchar');">Open mini-library of special characters</button></td>
+                        <td>
+                            <table width=100% id="togglespecialcharacters">
+                            <tr>
                             <td width=33% style="text-align: center;">A: ā á ǎ à Ā Á Ǎ À<br>U: ū ú ǔ ù Ū Ú Ǔ Ù</td>
                             <td width=33% style="text-align: center;">I: ī í ǐ ì Ī Í Ǐ Ì<br>Ü: ǖ ǘ ǚ ǜ Ǖ Ǘ Ǚ Ǜ</td>
                             <td width=33% style="text-align: center;">E: ē é ě è Ē É Ě È<br>O: ō ó ǒ ò Ō Ó Ǒ Ò</td>
-                        </tr></table></tr></td>
+                            </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width=34%><button id="buttonshowglossaryformatting" onclick="togglevisibility('buttonshowglossaryformatting');">Show glossary of wikitext formatting</button></td>
+                        <td>
+                            <table width=100% id="toggleglossaryformatting">
+                            <tr>
+                            <td width=50% style="text-align: left;">Italics: ''italic''<br>Bold & Italic: '''''bold & italic'''''<br>Strikethrough: &lt;s&gt;strikethrough&lt;/s&gt;<br>Superscript: 1&lt;sup&gt;st&lt;/sup&gt; (1<sup>st</sup>)<br>Small Text: small &lt;small&gt;text&lt;/small&gt;</td>
+                            <td width=50% style="text-align: left;">Bold: '''bold'''<br>Underlined: &lt;u&gt;underline&lt;/u&gt;<br><br>Subscript: O&lt;sub&gt;2&lt;/sub&gt; (O<sub>2</sub>)<br>Big Text: big &lt;big&gt;text&lt;/big&gt;</td>
+                            </tr>
+                            <tr>
+                            <td colspan="2" style="text-align: left;">In-line style: &lt;span style="color:#000000"&gt;text&lt;span&gt;<hr>Internal link: [[Page name]]<br>Hyperlink (external website): [https://www.example.org displayed text]<br>Link to wikipedia: [[wikipedia:Page_name|displayed text]]<br>Link to other FANDOM wiki: [[w:c:Wiki_name:Page_name|displayed text]]</td>
+                            </tr>                            
+                            </table>
+                        </td>
                     </tr>
                 </table>
                 <br>
@@ -238,6 +266,12 @@
     document.getElementById("checkshowengcolumn").checked = true;
     document.getElementById("tablestyle_span").checked = true;
     document.getElementById("togglespecialcharacters").style.display = "none";
+    document.getElementById("toggleglossaryformatting").style.display = "none";
+    document.getElementById("sticky").style.display = "none"
+
+    let bShowSpecialChar = false;
+    let bShowGlossaryFormatting = false;
+    let initScrollStop = document.getElementById("lyricstable").getBoundingClientRect().y;
 
     function setFormattingMode() {
         if (document.getElementById("tablestyle_span").checked) {
@@ -249,9 +283,102 @@
     }
 
     function togglevisibility(element) {
-        let displaymode = document.getElementById(element).style.display;
-        if (displaymode == "none") {document.getElementById(element).style.display = ""}
-        else {document.getElementById(element).style.display = "none"};
+        let docelement = document.getElementById(element);
+        let displaymode = "";
+        switch (element) {
+
+            case "buttonshowspecialchar":
+                displaymode = document.getElementById("togglespecialcharacters").style.display;
+                if (displaymode == "none") {
+                    document.getElementById("buttonshowspecialchar").innerHTML = "Close mini-library of special characters";
+                    document.getElementById("togglespecialcharacters").style.display = "";
+                    bShowSpecialChar = true;
+                }
+                else {
+                    document.getElementById("buttonshowspecialchar").innerHTML = "Open mini-library of special characters";
+                    document.getElementById("togglespecialcharacters").style.display = "none";
+                    bShowSpecialChar = false;
+                };
+                break;
+
+            case "buttonshowglossaryformatting":
+                displaymode = document.getElementById("toggleglossaryformatting").style.display;
+                if (displaymode == "none") {
+                    document.getElementById("buttonshowglossaryformatting").innerHTML = "Hide glossary of wikitext formatting";
+                    document.getElementById("toggleglossaryformatting").style.display = "";
+                    bShowGlossaryFormatting = true;
+                }
+                else {
+                    document.getElementById("buttonshowglossaryformatting").innerHTML = "Show glossary of wikitext formatting";
+                    document.getElementById("toggleglossaryformatting").style.display = "none";
+                    bShowGlossaryFormatting = false;
+                };
+                break;
+            default:
+                break;
+        }
+
+        //Show/hide sticky as necessary
+        if (bShowSpecialChar || bShowGlossaryFormatting) {
+            document.getElementById("sticky").style.display = "";
+        }
+        else {
+            document.getElementById("sticky").style.display = "none";
+        }
+
+        //Reset contents of sticky
+        document.getElementById("sticky").innerHTML = "";
+        
+    }
+
+    let sticky = document.getElementById("sticky"),
+    stop      = Math.max(document.getElementById("lyricstable").getBoundingClientRect().y, initScrollStop),
+    docBody   = document.documentElement || document.body.parentNode || document.body,
+    hasOffset = window.pageYOffset !== undefined,
+    scrollTop;
+    window.onscroll = function (e) {
+
+        // cross-browser compatible scrollTop.
+        scrollTop = hasOffset ? window.pageYOffset : docBody.scrollTop;
+
+        // if user scrolls to 60px from the top of the left div
+        if (scrollTop >= stop) {
+            sticky.className = 'stick';
+            sticky.innerHTML = "";
+            if (bShowSpecialChar) {
+                sticky.innerHTML += `<table width:100%>
+                    <tr>
+                    <td width=50% style="text-align: center;">A: ā á ǎ à Ā Á Ǎ À<br>U: ū ú ǔ ù Ū Ú Ǔ Ù<br>E: ē é ě è Ē É Ě È</td>
+                    <td width=50% style="text-align: center;">I: ī í ǐ ì Ī Í Ǐ Ì<br>Ü: ǖ ǘ ǚ ǜ Ǖ Ǘ Ǚ Ǜ<br>O: ō ó ǒ ò Ō Ó Ǒ Ò</td>
+                    </tr>
+                    </table>`;
+                if (bShowGlossaryFormatting) {sticky.innerHTML += "<br>"};
+            }
+            if (bShowGlossaryFormatting) {
+                sticky.innerHTML += `<table width:100%>
+                    <tr>
+                    <td colspan="2" style="text-align: left;">
+                        Bold: '''bold'''<br>
+                        Italics: ''italic''<br>
+                        Underlined: &lt;u&gt;underline&lt;/u&gt;<br>
+                        Bold & Italic: '''''bold & italic'''''<br>
+                        Strikethrough: &lt;s&gt;strikethrough&lt;/s&gt;<br>
+                        Superscript: 1&lt;sup&gt;st&lt;/sup&gt; (1<sup>st</sup>)<br>
+                        Subscript: O&lt;sub&gt;2&lt;/sub&gt; (O<sub>2</sub>)<br>
+                        Small Text: small &lt;small&gt;text&lt;/small&gt;<br>
+                        Big Text: big &lt;big&gt;text&lt;/big&gt;<br>
+                        In-line style: &lt;span style="color:#000000"&gt;text&lt;span&gt;
+                    </td>
+                    </tr>
+                    </table>`;
+            }
+        } 
+        else {
+            // release the div
+            sticky.className = "";
+            sticky.innerHTML = "";
+        }
+        
     }
 
     </script>
