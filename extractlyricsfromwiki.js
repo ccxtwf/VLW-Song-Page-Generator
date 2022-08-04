@@ -141,6 +141,8 @@ function getTableFromSourceData() {
   let wikiRowLyrics = ["", "", "", ""];
   let rowStyling = "";
   let wikiLyrics = [];
+  let mergedLyrics = "";
+  let plcTryRegex = [];
 
   //Reset error
   document.getElementById("tableerror").innerHTML = "";
@@ -170,10 +172,31 @@ function getTableFromSourceData() {
       };
       if (wikiRowLyrics[1].match(/\<br\s?\/?\>/)) {wikiRowLyrics[1] = "";}
       //Unmerge columns
-      if (nextLyricsLineCount - curLyricsLineCount == 1) {
-        wikiRowLyrics[1] = wikiRowLyrics[1].replace(/^.*\|/,"")
-        wikiRowLyrics[2] = wikiRowLyrics[1];
-        wikiRowLyrics[3] = wikiRowLyrics[1];
+      if (nextLyricsLineCount - curLyricsLineCount == 2) {
+        console.log("Case unmerge: ") + wikiRowLyrics[1];
+        //wikiRowLyrics[1] = wikiRowLyrics[1].replace(/^.*\|/,"")
+        mergedLyrics = wikiRowLyrics[1];
+        plcTryRegex = mergedLyrics.match(/(?<=(\{\{shared\|\d\}\}).*\|).*/g);
+        if (Array.isArray(plcTryRegex)) {
+          //Case: Lyrics have been merged in the format "{{shared|n}} |"
+          mergedLyrics = plcTryRegex[0];
+        }
+        else {
+          plcTryRegex = mergedLyrics.match(/(?<=(colspan=["']?\d["']?)\s?\|).*/g);
+          //Case: Lyrics have been merged in the format "colspan='n' |"
+          if (Array.isArray(plcTryRegex)) {
+            mergedLyrics = plcTryRegex[0];
+            plcTryRegex = plcTryRegex[0].match(/(?<=\<\w*\>'{5}).*(?='{5}\<\/\w*\>)/g);
+            //Remove additional formatting, e.g. <center>'''''text'''''</center>, if detected
+            if (Array.isArray(plcTryRegex)) {mergedLyrics = plcTryRegex[0];};
+          }
+          else {
+            //Case: no match found, keep merged lyrics as-is 
+          }
+        }
+        wikiRowLyrics[1] = mergedLyrics;
+        wikiRowLyrics[2] = mergedLyrics;
+        wikiRowLyrics[3] = mergedLyrics;
       }
       rowStyling = wikiRowLyrics[0].substring(1).trim();
       //Span formatting
