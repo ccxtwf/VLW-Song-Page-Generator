@@ -1,0 +1,237 @@
+<html>
+    <!-- 
+    References to JSpreadsheet CE v4 external library, for custom spreadsheet input tables 
+    For documentation please refer to https://bossanova.uk/jspreadsheet/v4/
+    -->
+    <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+    <script src="https://jsuites.net/v4/jsuites.js"></script>
+    <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css">
+    <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css">
+
+    <script src="extractlyricsfromwiki.js"></script>
+
+<head>
+<title>Wiki Lyrics Editor</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style>
+    body {
+        font-family: sans-serif;
+        color: navy;
+    }
+    td {
+        vertical-align: center;
+        font-size: 10pt;
+    }
+    td.caption {
+        text-align: left;
+        font-size: 14pt;
+        vertical-align: top;
+    }
+    td.div {
+        text-align: left;
+        font-size: 12pt;
+        vertical-align: center;
+    }
+    /* table, th, td {border: 1px solid;} */
+    button {
+        color:navy;
+        background-color: lightsteelblue;
+        border: 1px solid navy;
+        padding: 15px 32px;
+        text-align: center;
+        display: inline-block;
+        text-decoration: none;
+        width: 100%;
+        height: 100%;
+        transition-duration: 0.4s;
+    }
+    button:hover {
+        background-color: darkslateblue;
+        color: white;
+        border: 1px solid navy;
+    }
+    button.actionable {
+        color:white;
+        background-color: lightslategrey;
+        border: 1px solid navy;
+        padding: 15px 32px;
+        text-align: center;
+        display: inline-block;
+        text-decoration: none;
+        width: 90%;
+        height: 70px;
+    }
+    button.actionable:hover {
+        background-color: darkslategrey;
+        color: white;
+        border: 1px solid navy;
+    }
+    input[type=checkbox].disabled + label.disabled {
+        color: grey;
+        cursor: not-allowed;
+    }
+    textarea {
+        width:100%;
+        height:100%;
+    }
+    span.tooltip {
+        visibility: hidden;
+        background-color: navy;
+        color: white;
+        padding: 5px;
+        border-radius: 4px;
+        font-size: 10pt;
+        position: absolute;
+        z-index: 10;
+    }
+    span.tooltip table {
+        color: white;
+        font-size: 10pt;
+        z-index: 10;
+    }
+    span.info {
+        font-size: 14pt;
+        color: navy;
+    }
+    span.info:hover span.tooltip {
+        visibility: visible;
+    }
+</style>
+<h1>Wiki Lyrics Editor</h1>
+<p style="font-size: 8pt">Specially made for the <a href="https://vocaloidlyrics.fandom.com/">Vocaloid Lyrics Wiki</a></p>
+</head>
+<body>
+
+    <table style="width:100%">
+        <tr>
+            <td width=35% class="caption">Wiki page source code:<span class=info>&#x1F6C8;<span class=tooltip>To get the source code of the wiki page, you can either:<br><ol><li>Open the wiki page in <a href="https://community.fandom.com/wiki/Help:Source_editor" style="color: azure">Source Editor</a></li><li>Append "?action=raw" to the URL of the wiki page, e.g. <a href="https://vocaloidlyrics.fandom.com/wiki/ECHO/Crusher-P?action=raw" style="color: azure">https://vocaloidlyrics.fandom.com/wiki/ECHO/Crusher-P?action=raw</a></li></ol>Copy and paste the contents of the source code into the box below.</span></span></td>
+            <td width=5% class="caption"></td>
+            <td width=60% class="caption">Lyrics:</td>
+        </tr>
+        <tr>
+            <td class="div" style="vertical-align: top;"><br>
+                <div style="text-align: center;"><button onclick="getTableFromSourceData();">Extract table -></button></div><br>
+                <div style="text-align: center; font-size: 10pt;" id="divselecttable">Table no.: <select id="dropdownselecttable"></select></div><br>
+                <div style="text-align: center; color: red;" id="tableerror"></div>
+                <textarea rows=42 cols=50 id="textboxsourcecode" onchange="detectWikiTables()"></textarea>
+            </td>
+            <td></td>
+            <td id="collyrics" style="vertical-align: top;"><br>
+                <div style="text-align: center; width: 100%;"><button onclick="generateLyrics();">Create output</button></div><br>
+                <div id="lyricstable" tabindex="1" class="jexcel_container">    </div><br>
+            </td>
+        </tr>
+        <tr>
+            <td width=40% colspan="2" class="div"></td>
+            <td width=60% class="div">
+                <table width=100%>
+                <tr id="rowtranslatorcredit">
+                    <td width=50% class="div">Translator:  <input type=text id=translator width=40></input></td>
+                    <td width=50% class="div"><input type=checkbox id=officialtranslation>Official translation</input></td>
+                </tr>
+                <tr id="rowshowengcolumn">
+                    <td width=100% colspan="2" class="div"><input type=checkbox id="checkshowengcolumn"></input><label for=checkshowengcolumn id="checkshowengcolumnlabel">Show the English lyrics column</label></td>
+                </tr>
+                <tr><td colspan="2"><hr></td></tr>
+                <tr id="rowtablestyling">
+                    <td width=50% class="div">
+                        <input type="radio" id="tablestyle_lrc" name="rtablestyle" value=false onchange="setFormattingMode();"><label for="tablestyle_lrc">Table Styling: {{lrc}}</label>
+                    </td>
+                    <td width=50% class="div">
+                        <input type="radio" id="tablestyle_span" name="rtablestyle" value=true onchange="setFormattingMode();"><label for="tablestyle_span">Table Styling: &lt;span&gt;</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td width=50% class="div">
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type=text id="tablestyle_lrc_template" width=40 value="lrc color"></input>
+                    </td>
+                    <td width=50% class="div">&nbsp;</td>
+                </tr>
+                </table>
+                <table width=100%>
+                <tr id="rowactionable">
+                    <td width=33% style="text-align: center;"><button class="actionable" onclick="actionable_decapitalizeRomanizedLyrics();">Decapitalize romanized lyrics</button></td>
+                    <td width=33% style="text-align: center;"><button class="actionable" onclick="actionable_removeTonesFromPinyin();">Pinyin: Remove tones</button></td>
+                    <td width=34% style="text-align: center;"><button class="actionable" onclick="actionable_shiftRomajiToModernHepburn();">Romaji: Change 'wo'->'o', 'he'->'e', 'dzu'->'zu'</button></td>
+                </tr>
+                <tr><td width=100% colspan="3"><hr></td></tr>
+                <tr>
+                    <td width=100% colspan="3"><div style="text-align: center; width: 100%;"><button onclick="generateLyrics();">Create output</button></div></td>
+                </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3"><br><br></td>
+        </tr>
+        <tr>
+            <td colspan="2"></td>
+            <td class="div"><h1>Output</h1></td>
+        </tr>
+        <tr>
+            <td colspan="2"></td>
+            <td class="div"><textarea rows=40 cols=120 id="output" readonly=readonly></textarea></td>
+        </tr>
+    </table>
+    <br><br>
+    <p style="font-size: 8pt">Author: <a href="https://coolmikehatsune22.wordpress.com/about-me/">CoolMikeHatsune22</a><br>Github Repository: <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator">VLW Song Page Generator</a></p>
+
+    <script>
+
+    let lyricsTable = jspreadsheet(document.getElementById("lyricstable"));
+    let lyricsTable_width = document.getElementById("collyrics").clientWidth;
+    let lyricsTable_colwidth = Math.floor(lyricsTable_width / 10);
+    //Initialize event handler for lyrics table
+    let setShowEngColumnOptions = function(instance, cell, x, y, value) {
+        //console.log("Event handler triggered");
+        if (y == 3) {
+            let arrEngLyrics = lyricsTable.getColumnData(3);
+            let bTranslationExists = arrEngLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";});
+            //console.log("A translation exists: " + bTranslationExists);
+            document.getElementById("checkshowengcolumn").className = bTranslationExists ? "disabled" : "";
+            document.getElementById("checkshowengcolumnlabel").className = bTranslationExists ? "disabled" : "";
+            document.getElementById("checkshowengcolumn").disabled = bTranslationExists;
+            document.getElementById("checkshowengcolumn").checked = !bTranslationExists;
+            //document.getElementById("checkshowengcolumnlabel").innerHTML = bTranslationExists ? "(The option to hide the English lyrics column has been disabled)" : "Show the English lyrics column";
+        }
+    }
+    //Initialize lyrics input table
+    lyricsTable = jspreadsheet(document.getElementById("lyricstable"), {
+        columns: [
+            { type: "text", title: "Text colour", width: lyricsTable_colwidth },
+            { type: "text", title: "Original Lyrics", width: lyricsTable_colwidth * 3 },
+            { type: "text", title: "Transliterated Lyrics", width: lyricsTable_colwidth * 3 },
+            { type: "text", title: "Translated Lyrics", width: lyricsTable_colwidth * 3 }
+        ],
+        colAlignments: ["left", "left", "left", "left"],
+        columnSorting: false,
+        allowInsertRow: true,
+        allowManualInsertRow: true,
+        allowInsertColumn: false,
+        allowManualInsertColumn: false,
+        allowDeleteRow: true,
+        allowDeleteColumn: false,
+        allowRenameColumn: false,
+        wordWrap: true,
+        minDimensions: [4,1],
+        data: [...Array(30)].map(e => Array(4).fill("")),
+        //onchange: setShowEngColumnOptions,
+        });
+
+    document.getElementById("checkshowengcolumn").checked = true;
+    document.getElementById("tablestyle_span").checked = true;
+
+    function setFormattingMode() {
+        if (document.getElementById("tablestyle_span").checked) {
+            lyricsTable.setHeader(0, "Text colour");
+        }
+        else {
+            lyricsTable.setHeader(0, "LRC style");
+        }
+    }
+
+    </script>
+
+</body>
+</html>
