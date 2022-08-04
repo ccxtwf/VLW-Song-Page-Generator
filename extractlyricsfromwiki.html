@@ -111,13 +111,17 @@
         <tr>
             <td class="div" style="vertical-align: top;"><br>
                 <div style="text-align: center;"><button onclick="getTableFromSourceData();">Extract table -></button></div><br>
+            </td>
+            <td></td>
+            <td><div style="text-align: center; color: red;" id="tableerror"></div></td>
+        </tr>
+        <tr>
+            <td class="div" style="vertical-align: top;"><br>
                 <div style="text-align: center; font-size: 10pt;" id="divselecttable">Table no.: <select id="dropdownselecttable"></select></div><br>
-                <div style="text-align: center; color: red;" id="tableerror"></div>
                 <textarea rows=42 cols=50 id="textboxsourcecode" onchange="detectWikiTables()"></textarea>
             </td>
             <td></td>
             <td id="collyrics" style="vertical-align: top;"><br>
-                <div style="text-align: center; width: 100%;"><button onclick="generateLyrics();">Create output</button></div><br>
                 <div id="lyricstable" tabindex="1" class="jexcel_container">    </div><br>
             </td>
         </tr>

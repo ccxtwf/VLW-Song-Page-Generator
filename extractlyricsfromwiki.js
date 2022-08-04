@@ -141,6 +141,9 @@ function getTableFromSourceData() {
   let wikiRowLyrics = ["", "", "", ""];
   let rowStyling = "";
   let wikiLyrics = [];
+
+  //Reset error
+  document.getElementById("tableerror").innerHTML = "";
   
   while (curLyricsLineCount < splitWikiTableByLine.length - 1) {
     for (nextLyricsLineCount = curLyricsLineCount+1; nextLyricsLineCount < splitWikiTableByLine.length - 1; nextLyricsLineCount++) {
@@ -365,7 +368,6 @@ function generateLyrics() {
 function actionable_decapitalizeRomanizedLyrics() {
   let arrRomLyrics = lyricsTable.getColumnData(2);
   let romLyrics = "";
-  let arrSentences = [];
   if (Array.isArray(arrRomLyrics) && arrRomLyrics.length) {
     for (let i = 0; i < arrRomLyrics.length; i++) {
       romLyrics = arrRomLyrics[i].toString().trim();
@@ -395,7 +397,6 @@ function actionable_removeTonesFromPinyin() {
       romLyrics = romLyrics.replace(/[ĒÉĚÈ]/gm, "E");
       romLyrics = romLyrics.replace(/[ōóǒò]/gm, "o");
       romLyrics = romLyrics.replace(/[ŌÓǑÒ]/gm, "O");
-      console.log(romLyrics);
       arrRomLyrics[i] = romLyrics;
     };
   }
