@@ -106,11 +106,11 @@
         <tr>
             <td width=35% class="caption">Wiki page source code:<span class=info>&#x1F6C8;<span class=tooltip>To get the source code of the wiki page, you can either:<br><ol><li>Open the wiki page in <a href="https://community.fandom.com/wiki/Help:Source_editor" style="color: azure">Source Editor</a></li><li>Append "?action=raw" to the URL of the wiki page, e.g. <a href="https://vocaloidlyrics.fandom.com/wiki/ECHO/Crusher-P?action=raw" style="color: azure">https://vocaloidlyrics.fandom.com/wiki/ECHO/Crusher-P?action=raw</a></li></ol>Copy and paste the contents of the source code into the box below.</span></span></td>
             <td width=5% class="caption"></td>
-            <td width=60% class="caption">Lyrics:</td>
+            <td width=60% class="caption">Lyrics:<span class=info>&#x1F6C8;<span class=tooltip>Click the 'Create Output' button to apply the edits and recombine the table into wiki format. Copy this output and <a href="https://community.fandom.com/wiki/Help:Source_editor" style="color: azure">Edit the Source.</a></span></span></td>
         </tr>
         <tr>
             <td class="div" style="vertical-align: top;"><br>
-                <div style="text-align: center;"><button onclick="getTableFromSourceData();">Extract table -></button></div><br>
+                <div style="text-align: center;"><button onclick="getTableFromSourceData();">Extract table ⇉</button></div><br>
             </td>
             <td></td>
             <td><div style="text-align: center; color: red;" id="tableerror"></div></td>
@@ -169,7 +169,7 @@
                 <tr id="rowactionable">
                     <td width=33% style="text-align: center;"><button class="actionable" onclick="actionable_decapitalizeRomanizedLyrics();">Decapitalize romanized lyrics</button></td>
                     <td width=33% style="text-align: center;"><button class="actionable" onclick="actionable_removeTonesFromPinyin();">Pinyin: Remove tones</button></td>
-                    <td width=34% style="text-align: center;"><button class="actionable" onclick="actionable_shiftRomajiToModernHepburn();">Romaji: Change 'wo'->'o', 'he'->'e', 'dzu'->'zu'</button></td>
+                    <td width=34% style="text-align: center;"><button class="actionable" onclick="actionable_shiftRomajiToModernHepburn();">Romaji: Change 'wo'→'o', 'he'→'e', 'dzu'→'zu'</button></td>
                 </tr>
                 <tr><td width=100% colspan="3"><hr></td></tr>
                 <tr>
