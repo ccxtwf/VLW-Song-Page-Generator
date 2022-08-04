@@ -214,7 +214,7 @@ function generateInfoBox() {
 }
 
 function generateLyrics() {
-  console.log("PASSED LYRICS");
+  //console.log("PASSED LYRICS");
   let strWikiLyrics = "==Lyrics==\n";
   let strLyricsTable = "";
 
@@ -282,7 +282,7 @@ function generateLyrics() {
     bLyricsAreRomanized = (language == -1 || "transliteration" in languages[language]);
 
     //Add wiki table headers
-    strLyricsTable = "{| style='width:100%'\n";
+    strLyricsTable = "{| style=\"width:100%\"\n";
     if (language == -1) {
       //No language specified
       strLyricsTable += "|'''''Original'''''\n";
