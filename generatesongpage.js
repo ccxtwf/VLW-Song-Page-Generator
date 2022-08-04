@@ -351,13 +351,11 @@ function generateLyrics() {
     if (setLyricsColours.size > 1) {
       let singingParts = "";
       setLyricsColours.forEach (function(lyricsColour) {
-        if (lyricsColour == "") {
-          singingParts += "|" + "All" + "\n";
-        }
-        else {
+        if (lyricsColour !== "") {
           singingParts += "|<span style=\"color:" + lyricsColour + "\">" + "Singer" + "</span>\n";
-        }
+        };
       })
+      if (setLyricsColours.has("")) {singingParts += "|" + "All" + "\n";}
       singingParts = singingPartsTemplate.replace("#SINGING_PARTS\n", singingParts);
       strLyricsTable = singingParts + "\n" + strLyricsTable;
     }
