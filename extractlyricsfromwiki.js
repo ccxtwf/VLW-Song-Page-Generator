@@ -458,6 +458,15 @@ function getNewColumnHeaders(bShowEngColumn, bTranslationIsOfficial) {
 
   let strNewHeader = "";
 
+  if (strOrigHeader == "") {
+    strNewHeader = strDefaultHeader;
+    if (bShowEngColumn) {
+      if (bTranslationIsOfficial) {strNewHeader += "|{{OfficialEnglish}}\n";}
+      else {strNewHeader += "|'''''English'''''\n"};
+    }
+    return strNewHeader;
+  }
+
   let plcHeaders = strOrigHeader.split(/\r?\n/);
   plcHeaders.pop();
   //Has two or three columns
