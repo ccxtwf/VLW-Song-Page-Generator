@@ -104,6 +104,7 @@
         background-color: white;
         border: 2px solid navy;
         padding: 2px;
+        z-index: 30;
     }
 </style>
 <h1>Wiki Lyrics Editor</h1>
@@ -119,7 +120,7 @@
         </tr>
         <tr>
             <td class="div" style="vertical-align: top;"><br>
-                <div style="text-align: center;"><button onclick="getTableFromSourceData();">Extract table ⇉</button></div><br>
+                <div style="text-align: center;"><button title="Get the contents of the table from the inputted source code of the wiki page" onclick="getTableFromSourceData();">Extract table ⇉</button></div><br>
             </td>
             <td></td>
             <td><div style="text-align: center; color: red;" id="tableerror"></div></td>
@@ -134,7 +135,7 @@
             <td id="collyrics" style="vertical-align: top;"><br>
                 <table width=100%>
                     <tr>
-                        <td width=34%><button id="buttonshowspecialchar" onclick="togglevisibility('buttonshowspecialchar');">Open mini-library of special characters</button></td>
+                        <td width=34%><button id="buttonshowspecialchar" title="Open/close mini-library of special characters (for Chinese Pinyin)" onclick="togglevisibility('buttonshowspecialchar');">Open mini-library of special characters</button></td>
                         <td>
                             <table width=100% id="togglespecialcharacters">
                             <tr>
@@ -146,7 +147,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td width=34%><button id="buttonshowglossaryformatting" onclick="togglevisibility('buttonshowglossaryformatting');">Show glossary of wikitext formatting</button></td>
+                        <td width=34%><button id="buttonshowglossaryformatting" title="Show/hide glossary of wikitext formatting" onclick="togglevisibility('buttonshowglossaryformatting');">Show glossary of wikitext formatting</button></td>
                         <td>
                             <table width=100% id="toggleglossaryformatting">
                             <tr>
@@ -195,13 +196,13 @@
                 </table>
                 <table width=100%>
                 <tr id="rowactionable">
-                    <td width=33% style="text-align: center;"><button class="actionable" onclick="actionable_decapitalizeRomanizedLyrics();">Decapitalize romanized lyrics</button></td>
-                    <td width=33% style="text-align: center;"><button class="actionable" onclick="actionable_removeTonesFromPinyin();">Pinyin: Remove tones</button></td>
-                    <td width=34% style="text-align: center;"><button class="actionable" onclick="actionable_shiftRomajiToModernHepburn();">Romaji: Change 'wo'→'o', 'he'→'e', 'dzu'→'zu'</button></td>
+                    <td width=33% style="text-align: center;"><button class="actionable" title="Shift all letters in the romanized lyrics to lower case" onclick="actionable_decapitalizeRomanizedLyrics();">Decapitalize romanized lyrics</button></td>
+                    <td width=33% style="text-align: center;"><button class="actionable" title="Remove tones from Chinese Pinyin" onclick="actionable_removeTonesFromPinyin();">Pinyin: Remove tones</button></td>
+                    <td width=34% style="text-align: center;"><button class="actionable" title="Shift Japanese Romaji to Modified Hepburn, i.e. romanize を/'wo' as 'o', へ/'he' as 'e', and づ/'dzu' as 'zu'." onclick="actionable_shiftRomajiToModernHepburn();">Romaji: Change 'wo'→'o', 'he'→'e', 'dzu'→'zu'</button></td>
                 </tr>
                 <tr><td width=100% colspan="3"><hr></td></tr>
                 <tr>
-                    <td width=100% colspan="3"><div style="text-align: center; width: 100%;"><button onclick="generateLyrics();">Create output</button></div></td>
+                    <td width=100% colspan="3"><div style="text-align: center; width: 100%;"><button title="Combine lyrics and output table in wikitext format" onclick="generateLyrics();">Create output</button></div></td>
                 </tr>
                 </table>
             </td>
@@ -224,7 +225,8 @@
     <script>
 
     let lyricsTable = jspreadsheet(document.getElementById("lyricstable"));
-    let lyricsTable_width = document.getElementById("collyrics").clientWidth;
+    //let lyricsTable_width = document.getElementById("collyrics").clientWidth;
+    let lyricsTable_width = 0.6 * window.innerWidth;
     let lyricsTable_colwidth = Math.floor(lyricsTable_width / 10);
     //Initialize event handler for lyrics table
     let setShowEngColumnOptions = function(instance, cell, x, y, value) {
@@ -348,8 +350,16 @@
             if (bShowSpecialChar) {
                 sticky.innerHTML += `<table width:100%>
                     <tr>
-                    <td width=50% style="text-align: center;">A: ā á ǎ à Ā Á Ǎ À<br>U: ū ú ǔ ù Ū Ú Ǔ Ù<br>E: ē é ě è Ē É Ě È</td>
-                    <td width=50% style="text-align: center;">I: ī í ǐ ì Ī Í Ǐ Ì<br>Ü: ǖ ǘ ǚ ǜ Ǖ Ǘ Ǚ Ǜ<br>O: ō ó ǒ ò Ō Ó Ǒ Ò</td>
+                    <td width=50% style="text-align: center;">A: ā á ǎ à Ā Á Ǎ À</td>
+                    <td width=50% style="text-align: center;">I: ī í ǐ ì Ī Í Ǐ Ì</td>
+                    </tr>
+                    <tr>
+                    <td width=50% style="text-align: center;">U: ū ú ǔ ù Ū Ú Ǔ Ù</td>
+                    <td width=50% style="text-align: center;">Ü: ǖ ǘ ǚ ǜ Ǖ Ǘ Ǚ Ǜ</td>
+                    </tr>
+                    <tr>
+                    <td width=50% style="text-align: center;">E: ē é ě è Ē É Ě È</td>
+                    <td width=50% style="text-align: center;">O: ō ó ǒ ò Ō Ó Ǒ Ò</td>
                     </tr>
                     </table>`;
                 if (bShowGlossaryFormatting) {sticky.innerHTML += "<br>"};
@@ -377,8 +387,17 @@
             // release the div
             sticky.className = "";
             sticky.innerHTML = "";
-        }
+        }        
         
+    }
+
+    window.onresize = function (e) {
+        lyricsTable_width = 0.6 * document.documentElement.clientWidth;
+        lyricsTable_colwidth = Math.floor(lyricsTable_width / 10);
+        lyricsTable.setWidth(0, lyricsTable_colwidth);
+        lyricsTable.setWidth(1, lyricsTable_colwidth * 3);
+        lyricsTable.setWidth(2, lyricsTable_colwidth * 3);
+        lyricsTable.setWidth(3, lyricsTable_colwidth * 3);
     }
 
     </script>
