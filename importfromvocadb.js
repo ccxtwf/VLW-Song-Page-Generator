@@ -160,12 +160,14 @@ async function importFromVocaDB() {
         let pvs = vocadbjson.pvs;
         let pvsite;
         let pvthumb;
+        let pvurl;
         pvs.forEach(pv => {
             pvsite = identify_website(pv.url, listPVService);
+            pvurl = "<a href=\"" + pv.url + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + pv.url + "</a>";
             switch(pv.pvType) {
 
                 case "Original":
-                    playLinks.push([pvsite,pv.url,false,false,pv.disabled,""]);
+                    playLinks.push([pvsite,pvurl,false,false,pv.disabled,""]);
                     //Only add PV thumbnail if the PV is originally published by the author and is still up
                     if (!pv.disabled) {
                         switch(pvsite) {
@@ -189,7 +191,7 @@ async function importFromVocaDB() {
                     break;
                 
                 case "Reprint":
-                    playLinks.push([pvsite,pv.url,true,false,pv.disabled,""]);
+                    playLinks.push([pvsite,pvurl,true,false,pv.disabled,""]);
                     break;
                 case "Other":
                 default:
@@ -201,11 +203,15 @@ async function importFromVocaDB() {
         let webLinks = vocadbjson.webLinks;
         let weblinkcount = 1;
         let weblink_site;
-        extLinks[0] = ["https://vocadb.net/S/" + vocadbid, "VocaDB"];
+        let weblink_url;
+        weblink_url = "https://vocadb.net/S/" + vocadbid;
+        weblink_url = "<a href=\"" + weblink_url + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + weblink_url + "</a>";
+        extLinks[0] = [weblink_url, "VocaDB"];
         webLinks.forEach(weblink => {
             weblink_site = identify_website(weblink.url, listRecognizedLinks);
             if (weblink_site !== weblink.description) {weblink_site = addItemToListString(weblink.description, weblink_site, " - ");};
-            extLinks[weblinkcount] = [weblink.url, weblink_site];
+            weblink_url = "<a href=\"" + weblink.url + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + weblink.url + "</a>";
+            extLinks[weblinkcount] = [weblink_url, weblink_site];
             weblinkcount++;
         });
 
@@ -254,8 +260,8 @@ function validateURL(siteurl) {
 }
 
 function getVocaDBID(siteurl) {
-    siteurl = siteurl.replace(/^https?:\/\/vocadb\.net\/S\//,"");
-    siteurl = siteurl.replace(/\?.*/,"");
+    let tryregex = siteurl.match(/(?<=^https?:\/\/vocadb\.net\/S\/)\d*/gm);
+    if (Array.isArray(tryregex)) {siteurl = tryregex[0];};
     return siteurl;
 }
 

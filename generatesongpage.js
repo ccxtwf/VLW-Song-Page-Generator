@@ -147,7 +147,9 @@ function generateInfoBox() {
   let strPlayLinkNote = "";
   let strViewCount = "";
   let strViewCountPerPV = "";
+  let viewCountStr = "";
   let viewCount = 0;
+  let divViewCount = 1;
 
   //Fetch view count and play links information
   if (Array.isArray(arrDataPlayLinks) && arrDataPlayLinks.length) {
@@ -162,7 +164,7 @@ function generateInfoBox() {
     for (let i = 0; i < arrDataPlayLinks.length; i++) {
       //Write play link information
       let playLink = arrDataPlayLinks[i];
-      playLinkURL = playLink[1].trim();
+      playLinkURL = detagHref(playLink[1].trim());
       if (playLinkURL == "" || playLink[0] == "") {continue;};
       playLinkURL = playLinkURL.replace(/^https?:\/\/youtu\.be\//, "https://www.youtube.com/watch?v=");
       strPlayLinkPerPV = "[" + playLinkURL + " " + playLink[0] + " Broadcast]";
@@ -175,15 +177,22 @@ function generateInfoBox() {
 
       //Write view count information
       if ((!playLink[2] && !playLink[4] && playLink[0] in pvserviceabbr)) {
+        viewCountStr = playLink[5].trim();
+        viewCountStr = viewCountStr.replace(/[,.]\s?(?=\d{3})/g, "");
         //Round down view count number if numeric
-        if (playLink[5].trim() !== "" && !isNaN(playLink[5].trim())) {
-          viewCount = parseInt(playLink[5]);
-          if (viewCount < 10000) {viewCount = Math.floor(viewCount / 100) * 100;}
-          else {viewCount = Math.floor(viewCount / 1000) * 1000;}
+        if (viewCountStr !== "" && !isNaN(viewCountStr)) {
+          viewCount = parseInt(viewCountStr);
+          if (viewCount < 1000) {
+            divViewCount = 10 ** Math.trunc(Math.log10(viewCount));
+          }
+          else {
+            divViewCount = 10 ** (Math.trunc(Math.log10(viewCount)) - 1);
+          }
+          viewCount = Math.floor(viewCount / divViewCount) * divViewCount;
           strViewCountPerPV = viewCount.toLocaleString('en-US') + "+";
         }
         //Show view count number as text if non-numeric
-        else {strViewCountPerPV = playLink[5].trim();}
+        else {strViewCountPerPV = viewCountStr;}
         //Show the website on which the PV is published, if needed
         if (bShowPVService) {strViewCountPerPV += " (" + pvserviceabbr[playLink[0]] + ")";}
         strViewCount = addItemToListString(strViewCountPerPV, strViewCount, ", ");
@@ -383,7 +392,7 @@ function generateLyrics() {
 }
 
 function generateExternalLinks() {
-  console.log("PASSED EXT LINKS");
+  //console.log("PASSED EXT LINKS");
   let strWikiExternalLinks = "";
   if (Array.isArray(arrDataExtLinks) && arrDataExtLinks.length) {
     let strExtLink = "";
@@ -398,7 +407,7 @@ function generateExternalLinks() {
     strWikiExternalLinks = "==External Links==";
 
     arrDataExtLinks.forEach(extLink => {
-      url = extLink[0];
+      url = detagHref(extLink[0].trim());
       description = extLink[1];
       //VocaDB
       //if (url.match(/^https?:\/\/vocadb\.net\/.*/)) {
@@ -462,6 +471,7 @@ function autoloadCategories()
   let arrProdRoles = [];
   let bProdWikiCat = {};
 
+  //Categories: Vocal Synth Groups
   //let strAutoloadCategories = "";
   let strAutoloadCategories = "Vocaloid original songs";
   if (arrFeaturingOtherSynths.size > 0) { 
@@ -469,9 +479,13 @@ function autoloadCategories()
       strAutoloadCategories = strAutoloadCategories.concat("\n", "Songs featuring " + featuredSynth);
     });
   }
+
+  //Categories: Language
   //strAutoloadCategories = strAutoloadCategories + "\n" + "Album Only songs";
   let language = document.getElementById("languagelist").selectedIndex - 1;
   if (language >= 0) {strAutoloadCategories += "\n" + languages[language].name + " original songs";}
+
+  //Categories: Singers (including minor singers)
   if (Array.isArray(arrSingers) && arrSingers.length) { 
     arrSingers.forEach(singer => {
       singer = singer.substring(2, singer.length-2);
@@ -483,21 +497,22 @@ function autoloadCategories()
         strAutoloadCategories += "\n" + singer + " original songs";
       });
     }
+    //Categories: Number of singers (excluding minor singers)
     if (arrSingers.length > 3) {strAutoloadCategories += "\n" + "Group rendition original songs"}
     else if (arrSingers.length > 2) {strAutoloadCategories += "\n" + "Trios original songs"}
     else if (arrSingers.length > 1) {strAutoloadCategories += "\n" + "Duet original songs"};
   }
+
+  //Categories: Producers
   if (Array.isArray(arrProducers) && arrProducers.length) {
     arrProducers.forEach(producer => {
       prodName = producer.match(/\[\[[^\[\]]*\]\]/gm)[0];
-      //strProdRoles = producer.match(/\([^\(\)]*\)/gm)[0];
       strProdRoles = producer.replace(prodName + " ", "");
       prodName = prodName.substring(2, prodName.length-2);
       strProdRoles = strProdRoles.substring(1, strProdRoles.length-1);
       arrProdRoles = strProdRoles.split(",");
-      //console.log(arrProdRoles);
+      bProdWikiCat = {"music":false,"lyrics":false,"tuning":false,"arrangement":false,"visuals":false,"other":false,"default":false};
       arrProdRoles.forEach(prodRole => {
-        bProdWikiCat = {"music":false,"lyrics":false,"tuning":false,"arrangement":false,"visuals":false,"other":false,"default":false};
         switch(prodRole.trim()) {
           case "music":
             bProdWikiCat["music"] = true;
@@ -526,31 +541,33 @@ function autoloadCategories()
             bProdWikiCat["default"] = true;
             break;
         };
-        if (bProdWikiCat["music"] || bProdWikiCat["default"]) {
-          strAutoloadCategories += "\n" + prodName + " songs list"
-        }
-        else {
-          if (bProdWikiCat["lyrics"]) {
-            strAutoloadCategories += "\n" + prodName + " songs list/Lyrics"
-          }
-          if (bProdWikiCat["tuning"]) {
-            strAutoloadCategories += "\n" + prodName + " songs list/Tuning"
-          }
-          if (bProdWikiCat["arrangement"]) {
-            strAutoloadCategories += "\n" + prodName + " songs list/Arrangement"
-          }
-          if (bProdWikiCat["visuals"]) {
-            strAutoloadCategories += "\n" + prodName + " songs list/Visuals"
-          }
-          if (bProdWikiCat["other"]) {
-            strAutoloadCategories += "\n" + prodName + " songs list/Other"
-          }
-        }
       });
+      //console.log(bProdWikiCat);
+      if (bProdWikiCat["music"] || bProdWikiCat["default"]) {
+        strAutoloadCategories += "\n" + prodName + " songs list"
+      }
+      else {
+        if (bProdWikiCat["lyrics"]) {
+          strAutoloadCategories += "\n" + prodName + " songs list/Lyrics"
+        }
+        if (bProdWikiCat["tuning"]) {
+          strAutoloadCategories += "\n" + prodName + " songs list/Tuning"
+        }
+        if (bProdWikiCat["arrangement"]) {
+          strAutoloadCategories += "\n" + prodName + " songs list/Arrangement"
+        }
+        if (bProdWikiCat["visuals"]) {
+          strAutoloadCategories += "\n" + prodName + " songs list/Visuals"
+        }
+        if (bProdWikiCat["other"]) {
+          strAutoloadCategories += "\n" + prodName + " songs list/Other"
+        }
+      }
     });
   }
 
-  if (language = -1 || language >= 0) {
+  //Categories: Needing translation
+  if (language == -1 || language > 0) {
     let arrTranslatedLyrics = lyricsTable.getColumnData(lyricsTable.getConfig().colWidths.length - 1);
     let bTranslationExists = arrTranslatedLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";});
     //console.log(bTranslationExists);
@@ -742,4 +759,14 @@ function error_resets()
 
  document.getElementById("errors").innerHTML = "";
  document.getElementById("warnings").innerHTML = "";
+}
+
+/*
+ * Remove <a href> tag and get displayed URL/text
+ */
+function detagHref(strHref) {
+  let linkurl = strHref;
+  let tryRegex = strHref.match(/(?<=\<a href=\".*\"\>).*(?=\<\/a\>)/gm);
+  if (Array.isArray(tryRegex)) {linkurl = tryRegex[0];};
+  return linkurl;
 }
