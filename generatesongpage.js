@@ -417,11 +417,13 @@ function generateExternalLinks() {
       if (url.match(/^https?:\/\/.*\.fandom\.com\/.*/)) {
         wiki = url.replace(/^https?:\/\//, "").replace(/\.fandom\.com\/wiki\/.*/, "");
         page = url.replace(/^https?:\/\/.*\.fandom\.com\/wiki\//, "");
+        page = decodeURI(page);
         strExtLink = "*[[w:c:" + wiki + ":" + page + "|" + description + "]]";
       }
       //Wikipedia
       else if (url.match(/^https?:\/\/en\.wikipedia\.org\/wiki\/.*/)) {
         page = url.replace(/^https?:\/\/en\.wikipedia\.org\/wiki\//, "");
+        page = decodeURI(page);
         strExtLink = "*[[wikipedia:" + page + "|" + description + "]]";
       }
       else {
@@ -451,6 +453,7 @@ function generateListOfCategories() {
  */
 function autoloadCategories()
 {
+
   let strSingers = "";
   strSingers = read_textbox("singer").toString();
   strSingers = strSingers.replace(/<small>.*<\/small>/, "");
@@ -566,6 +569,10 @@ function autoloadCategories()
     });
   }
 
+  //Categories: Album-only songs
+  let bSongIsAlbumOnly = document.getElementById("albumonly").checked;
+  if (bSongIsAlbumOnly) {strAutoloadCategories += "\n" + "Album Only songs"};
+
   //Categories: Needing translation
   if (language == -1 || language > 0) {
     let arrTranslatedLyrics = lyricsTable.getColumnData(lyricsTable.getConfig().colWidths.length - 1);
@@ -631,9 +638,10 @@ function check_form_for_errors() {
   error = highlight_field("playlinkscaption", arrDataPlayLinks.length == 0, "No music videos or play links are detected: Is the song an album-only release?") || error;
 
   //No URL supplied in play links table
+  let bSongIsAlbumOnly = document.getElementById("albumonly").checked;
   error = highlight_field("playlinkscaption", 
-    !arrDataPlayLinks.some(function (rowPlayLink) {return rowPlayLink[1].trim() !== "";}), 
-    "No URL to any music video or play link is given.") 
+    !arrDataPlayLinks.some(function (rowPlayLink) {return rowPlayLink[1].trim() !== "";}) && !bSongIsAlbumOnly, 
+    "No URL to any music video or play link is given. Is the song an album-only release?") 
     || error;
 
   //Original lyrics is empty
@@ -766,7 +774,7 @@ function error_resets()
  */
 function detagHref(strHref) {
   let linkurl = strHref;
-  let tryRegex = strHref.match(/(?<=\<a href=\".*\"\>).*(?=\<\/a\>)/gm);
+  let tryRegex = strHref.match(/(?<=\<a href=\".*\".*\>).*(?=\<\/a\>)/gm);
   if (Array.isArray(tryRegex)) {linkurl = tryRegex[0];};
   return linkurl;
 }

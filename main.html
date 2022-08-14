@@ -212,6 +212,10 @@ function more_resets()
  lyricsTable.setData([...Array(30)].map(e => Array(3).fill("")));
  playLinksTable.setData(playLinks_init);
  extLinksTable.setData([["",""],["",""],["",""],["",""],["",""]]);
+
+ //Hide columns
+ document.getElementById("thumbrow").style.display = "none";
+
 }
 
 /*
@@ -220,7 +224,7 @@ function more_resets()
  */
 function identify_website(linkurl)
 {
- let tryRegex = linkurl.match(/(?<=\<a href=\".*\"\>).*(?=\<\/a\>)/gm);
+ let tryRegex = linkurl.match(/(?<=\<a href=\".*\".*\>).*(?=\<\/a\>)/gm);
  if (Array.isArray(tryRegex)) {linkurl = tryRegex[0];};
  for (let i = 0; i < listRecognizedLinks.length; ++i)
  {
@@ -552,6 +556,11 @@ button.actionable:hover {
     </td>
   </tr>
   <tr>
+    <td></td>
+    <td></td>
+    <td class=div><input type=checkbox id=albumonly form="songpageform">Is the song released on albums only?</input></td>
+  </tr>
+  <tr>
     <td colspan="3"><hr></td>
   </tr>
   <tr>
@@ -631,7 +640,7 @@ button.actionable:hover {
     <td><textarea readonly=readonly id=output cols="120" rows="40"></textarea></td>
   </tr>
 </table>
-<p style="font-size: 8pt">Author: <a href="https://coolmikehatsune22.wordpress.com/about-me/" target="_blank" rel="noopener noreferrer">CoolMikeHatsune22</a>, based on earlier work by <a href="https://vocaloidlyrics.fandom.com/wiki/User:ElectricRaichu" target="_blank" rel="noopener noreferrer">ElectricRaichu</a> and <a href="https://vocaloidlyrics.fandom.com/wiki/User:Nefere" target="_blank" rel="noopener noreferrer">Nefere</a>.<br>Github Repository: <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator" target="_blank" rel="noopener noreferrer">VLW Song Page Generator</a><br>Re-use and modification permitted under the CC license.<br><br>Update code: XX0863</p>
+<p style="font-size: 8pt">Author: <a href="https://coolmikehatsune22.wordpress.com/about-me/" target="_blank" rel="noopener noreferrer">CoolMikeHatsune22</a>, based on earlier work by <a href="https://vocaloidlyrics.fandom.com/wiki/User:ElectricRaichu" target="_blank" rel="noopener noreferrer">ElectricRaichu</a> and <a href="https://vocaloidlyrics.fandom.com/wiki/User:Nefere" target="_blank" rel="noopener noreferrer">Nefere</a>.<br>Github Repository: <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator" target="_blank" rel="noopener noreferrer">VLW Song Page Generator</a><br>Re-use and modification permitted under the CC license.<br><br>Update code: MN7321</p>
 
 <script>
 

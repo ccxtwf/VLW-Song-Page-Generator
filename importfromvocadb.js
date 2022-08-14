@@ -73,8 +73,6 @@ async function importFromVocaDB() {
         let dateOfPublication_rawStr = vocadbjson.publishDate;
         dateOfPublication = new Date(dateOfPublication_rawStr);
         let artists = vocadbjson.artists;
-        singers = "";
-        producers = "";
         let lookupJSonEntry = {};
         let artistName = "";
         let minorSingers = "";
@@ -201,7 +199,6 @@ async function importFromVocaDB() {
 
         //Obtain list of official & unofficial reference/web links
         let webLinks = vocadbjson.webLinks;
-        let weblinkcount = 1;
         let weblink_site;
         let weblink_url;
         weblink_url = "https://vocadb.net/S/" + vocadbid;
@@ -211,8 +208,7 @@ async function importFromVocaDB() {
             weblink_site = identify_website(weblink.url, listRecognizedLinks);
             if (weblink_site !== weblink.description) {weblink_site = addItemToListString(weblink.description, weblink_site, " - ");};
             weblink_url = "<a href=\"" + weblink.url + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + weblink.url + "</a>";
-            extLinks[weblinkcount] = [weblink_url, weblink_site];
-            weblinkcount++;
+            extLinks.push([weblink_url, weblink_site]);
         });
 
         //testOutput();
