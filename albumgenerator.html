@@ -1,0 +1,473 @@
+<html>
+  <!-- 
+    References to JSpreadsheet CE v4 external library, for custom spreadsheet input tables 
+    For documentation please refer to https://bossanova.uk/jspreadsheet/v4/
+  -->
+  <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+  <script src="https://jsuites.net/v4/jsuites.js"></script>
+  <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+  <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
+
+  <!-- Reference other scripts in the same project -->
+  <script src="generatealbumpage.js"></script>
+<head>
+<title>VLW Album Page Generator</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script>
+const colournames =
+  [
+  "black", "white", "aliceblue", "antiquewhite", "aqua", "aquamarine",
+  "azure", "beige", "bisque", "blanchedalmond", "blue", "blueviolet",
+  "brown", "burlywood", "cadetblue", "chartreuse", "chocolate", "coral",
+  "cornflowerblue", "cornsilk", "crimson", "cyan", "darkblue", "darkcyan",
+  "darkgoldenrod", "darkgray", "darkgreen", "darkgrey", "darkkhaki",
+  "darkmagenta", "darkolivegreen", "darkorange", "darkorchid", "darkred",
+  "darksalmon", "darkseagreen", "darkslateblue", "darkslategray",
+  "darkslategrey", "darkturquoise", "darkviolet", "deeppink", "deepskyblue",
+  "dimgray", "dimgrey", "dodgerblue", "firebrick", "floralwhite",
+  "forestgreen", "fuchsia", "gainsboro", "ghostwhite", "gold", "goldenrod",
+  "gray", "green", "greenyellow", "grey", "honeydew", "hotpink", "indianred",
+  "indigo", "ivory", "khaki", "lavender", "lavenderblush", "lawngreen",
+  "lemonchiffon", "lightblue", "lightcoral", "lightcyan",
+  "lightgoldenrodyellow", "lightgray", "lightgreen", "lightgrey",
+  "lightpink", "lightsalmon", "lightseagreen", "lightskyblue",
+  "lightslategray", "lightslategrey", "lightsteelblue", "lightyellow",
+  "lime", "limegreen", "linen", "magenta", "maroon", "mediumaquamarine",
+  "mediumblue", "mediumorchid", "mediumpurple", "mediumseagreen",
+  "mediumslateblue", "mediumspringgreen", "mediumturquoise",
+  "mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin",
+  "navajowhite", "navy", "oldlace", "olive", "olivedrab", "orange",
+  "orangered", "orchid", "palegoldenrod", "palegreen", "paleturquoise",
+  "palevioletred", "papayawhip", "peachpuff", "peru", "pink", "plum",
+  "powderblue", "purple", "rebeccapurple", "red", "rosybrown", "royalblue",
+  "saddlebrown", "salmon", "sandybrown", "seagreen", "seashell", "sienna",
+  "silver", "skyblue", "slateblue", "slategray", "slategrey", "snow",
+  "springgreen", "steelblue", "tan", "teal", "thistle", "tomato",
+  "turquoise", "violet", "wheat", "whitesmoke", "yellow", "yellowgreen"
+  ];
+
+/*
+ * Global references to custom spreadsheet input tables
+ */
+let extLinksTable = jspreadsheet(document.getElementById("extlinks"));
+let trackListTable = jspreadsheet(document.getElementById("tracklist"));
+
+/*
+ * Obtain contents of a text field as input by the user. Trimmed.
+ */
+function read_text(fieldname)
+{
+ return document.getElementById(fieldname).value.trim();
+}
+
+/*
+ * Obtain contents of a textbox field as input by the user
+ * split into an array of lines. Trimmed. Empty lines removed.
+ */
+function read_textbox(fieldname)
+{
+ return document.getElementById(fieldname).value.split("\n").map(x => x.trim()).filter(x => x);
+}
+
+/*
+ * Return whether or not a string is a valid CSS colour.
+ */
+function validate_colour(colour)
+{
+ return colour == "" || colour.match("^#[0-9a-f]{6}$") || colournames.indexOf(colour) >= 0;
+}
+
+/*
+ * Give a warning message.
+ */
+function show_warning(message)
+{
+  let warnings = document.getElementById("warnings");
+  warnings.innerHTML += "<p>" + message + "</p>";
+}
+
+/*
+ * Clear the album page form and reset various elements in the HTML doc
+ */
+function more_resets()
+{
+  document.getElementById("albumpageform").reset();
+  error_resets();
+  trackListTable.setData([...Array(10)].map(e => Array(5).fill("")));
+  extLinksTable.setData([["",""],["",""],["",""],["",""],["",""]]);
+}
+
+/*
+ * Highlight/unhighlight a field according to whether an error
+ * has been detected.
+ * Output an error message.
+ * Return error status for convenience.
+ */
+ function highlight_field(fieldname, errorstatus, message)
+{
+ document.getElementById(fieldname).className =
+  errorstatus ? "texterror" : "";
+ if (errorstatus)
+ {
+  let errors = document.getElementById("errors");
+  errors.innerHTML += "<p>" + message + "</p>";
+ }
+ return errorstatus;
+}
+
+/*
+ * Clear errors and warnings.
+ */
+ function error_resets()
+{
+ highlight_field("originaltitle", false);
+ highlight_field("bgcolour", false);
+ highlight_field("description", false);
+ highlight_field("tracklisttablecaption", false);
+ highlight_field("vocadbid", false);
+ highlight_field("categories", false);
+
+ document.getElementById("errors").innerHTML = "";
+ document.getElementById("warnings").innerHTML = "";
+}
+
+/*
+ * Identify a website from its URL.
+ * Return site name, or "(unidentified website)" if not recognized.
+ */
+function identify_website(linkurl)
+{
+ let tryRegex = linkurl.match(/(?<=\<a href=\".*\".*\>).*(?=\<\/a\>)/gm);
+ if (Array.isArray(tryRegex)) {linkurl = tryRegex[0];};
+ for (let i = 0; i < listRecognizedLinks.length; ++i)
+ {
+  if (linkurl.match(listRecognizedLinks[i].re))
+   return listRecognizedLinks[i].site;
+ }
+ return "";
+}
+
+/*
+ * Event handler: Colour picker
+ */
+function color_changed(id)
+{
+ document.getElementById(id).value = document.getElementById(id + "picker").value;
+}
+
+/*
+ * Copy the output to clipboard when button is pressed.
+ */
+function copyOutputToClipboard() {
+  document.getElementById("output").select();
+  document.execCommand("copy");
+}
+
+</script>
+<style>
+body {
+ font-family: sans-serif;
+ color: navy;
+}
+td {
+ font-size: 10pt;
+}
+td.caption {
+ text-align: right;
+ vertical-align: top;
+ font-size: 14pt;
+}
+td.div {
+ text-align: left;
+ vertical-align: center;
+ font-size: 12pt;
+}
+td.tooltip{
+  text-align: left;
+  vertical-align: top;
+  font-size: 12pt;
+  width: 2%;
+}
+span.tooltip {
+ visibility: hidden;
+ background-color: navy;
+ color: white;
+ padding: 5px;
+ border-radius: 4px;
+ font-size: 10pt;
+ position: absolute;
+ z-index: 10;
+}
+span.tooltip table {
+ color: white;
+ font-size: 10pt;
+ z-index: 10;
+}
+span.info {
+ font-size: 14pt;
+ color: navy;
+}
+span.info:hover span.tooltip {
+ visibility: visible;
+}
+.texterror {
+ color: red;
+ border-color: red;
+}
+div.errors {
+ color: red;
+}
+div.warnings {
+ color: darkorange;
+}
+button.actionable {
+  color:navy;
+  background-color: lightsteelblue;
+  border: 1px solid navy;
+  padding: 15px 32px;
+  text-align: center;
+  display: inline-block;
+  text-decoration: none;
+  width: 100%;
+  height: 100%;
+  transition-duration: 0.4s;
+}
+button.actionable:hover {
+  background-color: darkslateblue;
+  color: white;
+  border: 1px solid navy;
+}
+</style>
+</head>
+<body>
+<h1>Album page generator for <a href="https://vocaloidlyrics.fandom.com/wiki/Vocaloid_Lyrics_Wiki:Album_Article_Guideline" target="_blank" rel="noopener noreferrer">Vocaloid Lyrics Wiki</a></h1>
+<form onSubmit="return false;" id="albumpageform"></form>
+<table width=100%>
+  <tr>
+    <td class=caption width=15%>Pre-load from VocaDB page:</td>
+    <td class=tooltip><span class=info>&#x1F6C8;<span class=tooltip>Input URL to VocaDB album page here.<br>e.g. <a href="https://vocadb.net/Al/21149" target="_blank" rel="noopener noreferrer" style="color: azure">https://vocadb.net/Al/21149</a> Comic and Cosmic</span></span></td>
+    <td class=div>
+      <input type=text id=preloadfromurl size="70"></input> 
+      <button onclick="if (confirm('This will clear all inputted data. Continue?')) {more_resets(); importFromVocaDB();}">Preload</button>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class=caption>Original title:</td>
+    <td class=tooltip><span class=info>&#x1F6C8;<span class=tooltip>Album name in original language<br>(required)</span></span></td>
+    <td class=div><input type=text id=originaltitle size="82" form="albumpageform"></input></td>
+  </tr>
+  <tr id=romajititlerow>
+    <td class=caption>Transliterated title:</td>
+    <td class=tooltip><span class=info>&#x1F6C8;<span class=tooltip>Transliterated song title<br>(if non-English original)</span></span></td>
+    <td class=div><input type=text id=romajititle size="82" form="albumpageform"></input></td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class=caption>Infobox bg/fg colour:</td>
+    <td class=tooltip><span class=info>&#x1F6C8;<span class=tooltip>Infobox colour<br>hexadecimal colour, e.g., #ff0000<br><em>or</em><br>colour name, e.g., red</span></span></td>
+    <td class=div width=33%><input type=text id=bgcolour size="7" value="black" form="albumpageform"/> <input type=color id=bgcolourpicker value="#000000" style="width:45px" onchange="color_changed('bgcolour')" form="albumpageform"/> </td>
+  </tr>
+  <tr>
+    <td class=caption>Label:</td>
+    <td class=tooltip><span class=info>&#x1F6C8;<span class=tooltip>Name of the label that published the album, e.g. EXIT TUNES, KarenT</span></span></td>
+    <td class=div><textarea id=label cols="80" rows="1" form="albumpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td class=caption>Featuring vocal synths:</td>
+    <td class=tooltip><span class=info>&#x1F6C8;<span class=tooltip>List of featured vocal synths, separated by semi-colon (;). Markup allows the tool to figure out whether or not to generate a category for the vocal synth. <br>e.g.: [[Kagamine Rin]]; [[Kagamine Len]]; Kasane Teto</span></span></td>
+    <td class=div><textarea id=singer cols="80" rows="2" form="albumpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td class=caption>Producer(s):</td>
+    <td class=tooltip><span class=info>&#x1F6C8;<span class=tooltip>List of featured producer(s), separated by semi-colon (;). Markup allows the tool to figure out whether or not to generate a category for the producer. <br>e.g.: [[Tanaka Kazuto]]; Pikucha</span></span></td>
+    <td class=div><textarea id=producers cols="80" rows="5" form="albumpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td class=caption>Description:</td>
+    <td class=tooltip><span class=info>&#x1F6C8;<span class=tooltip>Add a short description about the album, e.g. "a compilation album by PRODUCERS featuring SYNTHS" or "an album by PRODUCER".<hr>(required)</span></span></td>
+    <td class=div><textarea id=description cols="80" rows="5" form="albumpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td colspan="3" class=caption style="font-size: 18pt; text-align: center;" id=tracklisttablecaption>Tracklist  <span class=info>&#x1F6C8;<span class=tooltip style="text-align: left;">Add tracklist information here.<br>Track names should follow the naming convention of song articles (e.g. "すろぉもぉしょん (Slow Motion)").<br>If a song page exists on Vocaloid Lyrics wiki then the URL of that page should be inputted into the table.<br>Markup to featured producers and singers should only be added for the first mention of that artist/synth.<br><br>Add, delete, or drag rows as you please<hr>(required)</span></span></td>
+  </tr>
+  <tr>
+    <td colspan="3">
+      <table width=100%>
+        <tr>
+        <td width="50px"> </td>
+        <td><div id=tracklist tabindex="1" class="jexcel_container">    </div></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class=caption>VocaDB Album Page ID:</td>
+    <td class=tooltip><span class=info>&#x1F6C8;<span class=tooltip>The numerical ID of the album page entry on VocaDB. For example, the Page ID for the album "Comic and Cosmic" (<a href="https://vocadb.net/Al/21149" target="_blank" rel="noopener noreferrer" style="color: azure">https://vocadb.net/Al/21149</a>) is 21149.<hr>(required)</span></span></td>
+    <td class=div><textarea id=vocadbid cols="80" rows="1" form="albumpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td class=caption>Vocaloid Wiki Page:</td>
+    <td class=tooltip><span class=info>&#x1F6C8;<span class=tooltip>The Vocaloid Wiki page for the album, if it exists. Only the page name should be given.</span></span></td>
+    <td class=div><textarea id=vocaloidwikipage cols="80" rows="1" form="albumpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td class=caption class=div>External links:</td>
+    <td class=tooltip><span class=info>&#x1F6C8;<span class=tooltip>Links to related web pages, one per line, with description, e.g.:<br>https://piapro.jp/t/uvwx Off-vocal<br>Recognizes many commonly used sites such as Hatsune Miku Wiki and VocaDB<br><br>Add, delete, or drag rows as you please</span></span></td>
+    <td>
+      <div id=extlinks tabindex="1" class="jexcel_container">    </div>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class=caption>Categories:</td>
+    <td class=tooltip><span class=info>&#x1F6C8;<span class=tooltip>Category names, one per line, e.g.:<br>Albums featuring Hatsune Miku<hr>Click the Autoload button to have the site generate commonly used tags</span></span></td>
+    <td class=div><textarea id=categories cols="70" rows="5" form="albumpageform"></textarea>  <button form="albumpageform" onclick="autoloadCategories()">Autoload</button></td>
+  </tr>
+  <tr>
+    <td colspan="3"><br><hr><br></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td>
+      <table width=100%><tr>
+        <td class=div>
+          <button form="albumpageform" class="actionable" onclick="if (confirm('This will clear all inputted data. Continue?')) {more_resets();}">Reset</button>
+        </td>
+        <td class=div width=18%></td>
+        <td class=div width=60%>
+          <button form="albumpageform" class="actionable" style="width:300px" onclick="generateAlbumPage();">Generate</button>
+          <input type=checkbox id=ignoreerrors form="albumpageform">ignore errors</input>
+        </td>
+      </tr></table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><br><hr><br></td>
+  </tr>
+</table>
+
+<div id=errors class=errors></div>
+<div id=warnings class=warnings></div>
+
+<table width=100%>
+  <tr>
+    <td colspan="2" class=caption style="font-size: 20pt; text-align: center;">Results <button onclick="copyOutputToClipboard();">Copy Output</button></td>
+  </tr>
+  <tr>
+    <td colspan="2" id=pagetitle class=caption style="text-align: center;"></td>
+  </tr>
+  <tr>
+    <td width=17%> </td>
+    <td><textarea readonly=readonly id=output cols="120" rows="40"></textarea></td>
+  </tr>
+</table>
+<p style="font-size: 8pt">Author: <a href="https://coolmikehatsune22.wordpress.com/about-me/" target="_blank" rel="noopener noreferrer">CoolMikeHatsune22</a>.<br>Github Repository: <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator" target="_blank" rel="noopener noreferrer">VLW Song Page Generator</a><br>Re-use and modification permitted under the CC license.<br><br>Update code: 000000</p>
+
+<script>
+
+//Event handling for tracklist input table: automatically detect the page name in the given VLW page URL
+let trackListChanged = function(instance, cell, col, row, value) {
+  try {
+    if (col==3 && value.trim() !== "") {
+      let siteurl = value;
+      let pagename = detagHref(siteurl);
+      let tryRegex = [];
+      tryRegex = pagename.match(/(?<=^https?:\/\/vocaloidlyrics\.fandom\.com\/wiki\/).*/);
+      if (Array.isArray(tryRegex) && tryRegex.length) {
+        pagename = tryRegex[0];
+        tryRegex = pagename.match(/^.*(?=\/)/);
+        if (Array.isArray(tryRegex) && tryRegex.length) {pagename = tryRegex[0];}
+        pagename = pagename.replace(/_/g, " ");
+        pagename = decodeURI(pagename);
+      }
+
+      //console.log(siteurl, sitename);
+      if (siteurl.match(/^https?:\/\/.*/)) {
+        trackListTable.setValueFromCoords(col, row, "<a href=\"" + siteurl + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + siteurl + "</a>");
+      }
+      trackListTable.setValueFromCoords(col-1, row, pagename);
+      //console.log("Changed");
+    }
+  }
+  catch (error) {}
+};
+
+//Initialize tracklist input table
+trackListTable = jspreadsheet(document.getElementById("tracklist"), {
+  data: [...Array(10)].map(e => Array(5).fill("")),
+  columns: [
+    { type: "numeric", title: "Disk No.", width: 80 },
+    { type: "numeric", title: "Track No.", width: 80 },
+    { type: "text", title: "Track name", width: 300 },
+    { type: "html", title: "VLW Page URL", width: 300 },
+    { type: "text", title: "Featured Producers & Singers", width: 300 }
+  ],
+  colAlignments: ["center", "center", "left", "left", "left"],
+  columnSorting: true,
+  rowDrag: true,
+  allowInsertRow: true,
+  allowManualInsertRow: true,
+  allowInsertColumn: false,
+  allowManualInsertColumn: false,
+  allowDeleteRow: true,
+  allowDeleteColumn: false,
+  allowRenameColumn: false,
+  minDimensions: [5,1],
+  wordWrap: true,
+  onchange: trackListChanged
+});
+
+//Event handling for external links input table: automatically detect the website in the URL
+let extLinkChanged = function(instance, cell, col, row, value) {
+  try {
+    if (col==0 && value.trim() !== "") {
+      let siteurl = value;
+      let sitename = identify_website(siteurl);
+      //console.log(siteurl, sitename);
+      if (siteurl.match(/^https?:\/\/.*/)) {
+        extLinksTable.setValueFromCoords(col, row, "<a href=\"" + siteurl + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + siteurl + "</a>");
+      }
+      extLinksTable.setValueFromCoords(col+1, row, sitename);
+    }
+  }
+  catch (error) {}
+};
+
+//Initialize external links input table
+extLinksTable = jspreadsheet(document.getElementById("extlinks"), {
+  data: [["",""],["",""],["",""],["",""],["",""]],
+  columns: [
+    { type: "html", title: "URL", width: 500 },
+    { type: "text", title: "Description", width: 400 }
+  ],
+  colAlignments: ["left", "left"],
+  columnSorting: true,
+  rowDrag: true,
+  allowInsertRow: true,
+  allowManualInsertRow: true,
+  allowInsertColumn: false,
+  allowManualInsertColumn: false,
+  allowDeleteRow: true,
+  allowDeleteColumn: false,
+  allowRenameColumn: false,
+  //minDimensions: [2,5],
+  onchange: extLinkChanged
+});
+
+</script>
+</body>
+</html>
