@@ -2,7 +2,7 @@
 
 const strInfoBoxTemplate = `{{Infobox_Song
 |image = 
-|songtitle = ""'''$ORIGINAL_TITLE'''""$ADDITIONAL_TITLES
+|songtitle = "'''$ORIGINAL_TITLE'''"$ADDITIONAL_TITLES
 |color = $BG_COLOUR; color:$FG_COLOUR
 |original upload date = $DATEOFPUBLICATION
 |singer = $SINGERS
