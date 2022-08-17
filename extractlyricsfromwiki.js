@@ -474,7 +474,7 @@ function validate_colour(colour) {
  */
 function getNewColumnHeaders(bShowEngColumn, bTranslationIsOfficial) {
 
-  const strDefaultHeader =`{| style='width:100%'
+  const strDefaultHeader =`{| style="width:100%"
 |'''''Original'''''
 |'''''Romanized'''''
 `
