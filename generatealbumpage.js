@@ -244,21 +244,27 @@ function autoloadCategories() {
     let strCategories = "";
 
     //Featuring software/engines
-    arrVocalSynthGroups.forEach( synthgroup => {
-        strCategories += "Albums featuring " + synthgroup + "\n";
-    });
+    if (strVocalSynthGroups !== "") {
+        arrVocalSynthGroups.forEach( synthgroup => {
+            strCategories += "Albums featuring " + synthgroup + "\n";
+        });
+    };
 
     //Featuring singers
-    arrSynths.forEach( synth => {
-        synth = synth.trim();
-        strCategories += "Albums featuring " + synth + "\n";
-    });
+    if (strSynths !== "") {
+        arrSynths.forEach( synth => {
+            synth = synth.trim();
+            strCategories += "Albums featuring " + synth + "\n";
+        });
+    };
 
     //Featuring Producers
-    arrProducers.forEach( producer => {
-        producer = producer.trim();
-        strCategories += producer + " songs list/Albums\n";
-    });
+    if (strProducers !== "") {
+        arrProducers.forEach( producer => {
+            producer = producer.trim();
+            strCategories += producer + " songs list/Albums\n";
+        });
+    };
 
     //Write categories
     $("#categories").val(strCategories);
