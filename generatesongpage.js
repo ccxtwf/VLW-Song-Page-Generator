@@ -9,10 +9,10 @@ const strInfoBoxTemplate = `{{Infobox_Song
 |producer = $PRODUCERS
 |#views = $VIEWCOUNT
 |link = $PLAYLINKS
-|description = $DESCRIPTION
+$DESCRIPTION
 }}`;
 
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const pvserviceabbr = {
   "Niconico":"NN",
   "bilibili":"BB",
@@ -67,6 +67,14 @@ let arrDataPlayLinks = [];
 let arrDataExtLinks = [];
 let arrDataLyrics = [];
 
+let configLanguages = {
+  "bLanguageIsUndefined": true,
+  "bLanguageIsTransliterated": true,
+  "bLanguageIsNonEnglish": true,
+  "arrLyricsOrigLang": ["Original"],
+  "arrLyricsTransliteration": ["Romanized"]
+};
+
 /*
  * Read data input into custom JSpreadsheet tables
  */
@@ -76,13 +84,55 @@ function readTables() {
   arrDataLyrics = lyricsTable.getData();
 }
 
+function determineLanguages() {
+
+  //Reset
+  configLanguages = {
+    "bLanguageIsUndefined": true,
+    "bLanguageIsTransliterated": true,
+    "bLanguageIsNonEnglish": true,
+    "arrLyricsOrigLang": ["Original"],
+    "arrLyricsTransliteration": ["Romanized"]
+  }
+
+  let arrLanguages = [];
+
+  //Determine configurations
+  let dropdownvalue = $("#languagelist").dropdown("get value");
+  let bLanguageIsUndefined = dropdownvalue == "";
+  if (!bLanguageIsUndefined) {
+
+    arrLanguages = dropdownvalue.split(",").map(x => parseInt(x));
+
+    let bLanguageIsTransliterated = bLanguageIsUndefined || arrLanguages.some(function (language) {return "transliteration" in languages[language];});
+    let bLanguageIsNonEnglish = bLanguageIsUndefined || arrLanguages.some(function (language) {return language > 0;});
+
+    let arrLyricsOrigLang = [];
+    let arrLyricsTransliteration = [];
+    arrLyricsOrigLang = arrLanguages.map(lang => languages[lang].name);
+    let arrTransliteratedLanguages = arrLanguages.filter(function (language) {return "transliteration" in languages[language];});
+    arrLyricsTransliteration = arrTransliteratedLanguages.map(lang => languages[lang].transliteration);
+
+    //Set properties
+    configLanguages.bLanguageIsUndefined = bLanguageIsUndefined;
+    configLanguages.bLanguageIsTransliterated = bLanguageIsTransliterated;
+    configLanguages.bLanguageIsNonEnglish = bLanguageIsNonEnglish;
+    configLanguages.arrLyricsOrigLang = arrLyricsOrigLang;
+    configLanguages.arrLyricsTransliteration = arrLyricsTransliteration;
+
+  }
+  else {return;}
+
+}
+
 /*
  * Generate entire song page
  */
 function generateSongPage() {
+
   //Reset output
-  document.getElementById("output").innerHTML = "";
-  document.getElementById("pagetitle").innerHTML = "";
+  $("#output").html("");
+  $("#pagetitle").html("");
 
   //Check for errors
   let ignoreerrors = document.getElementById("ignoreerrors").checked;
@@ -93,11 +143,24 @@ function generateSongPage() {
 
   //Otherwise generate the song page
   readTables();
-  document.getElementById("output").innerHTML = generateContentWarnings() + generateInfoBox() + "\n\n" + generateLyrics() + "\n\n" + generateExternalLinks() + "\n\n\n" + generateListOfCategories();
+  determineLanguages();
+
   let pageTitle = read_text("originaltitle");
   let romTitle = read_text("romajititle");
   if (romTitle !== "") {pageTitle += " (" + romTitle + ")"};
-  document.getElementById("pagetitle").innerHTML = pageTitle;
+  $("#pagetitle").html(pageTitle);
+
+  let strSongPage = ""
+  if (document.getElementById("unavailable").checked) {strSongPage += "{{Unavailable}}"};
+  strSongPage += generateContentWarnings();
+  strSongPage += generateInfoBox();
+  strSongPage += "\n\n" + generateLyrics();
+  strSongPage += "\n\n" + generateExternalLinks();
+  strSongPage += "\n\n\n";
+  if (romTitle !== "") {strSongPage += "{{DEFAULTSORT:" + romTitle + "}}\n"};
+  strSongPage += generateListOfCategories();
+  
+  $("#output").html(strSongPage);
 
 }
 
@@ -113,19 +176,24 @@ function generateInfoBox() {
   let strInfoBox = strInfoBoxTemplate;
 
   //Fetch song language and title information
-  let language = document.getElementById("languagelist").selectedIndex - 1;
-  let bShowRomTitle = (language < 0 || "transliteration" in languages[language]);
-  let bShowEngTitle = (language !== 0);
+  let bLanguageIsUndefined = configLanguages.bLanguageIsUndefined;
+  let bShowRomTitle = configLanguages.bLanguageIsTransliterated;
+  let bShowEngTitle = configLanguages.bLanguageIsNonEnglish;
+
   let origTitle = read_text("originaltitle");
   let romTitle = read_text("romajititle");
   let engTitle = read_text("translatedtitle");
-  let transliteration = "";
-  if (language == -1) {transliteration = "Romanized: "}
-  else if (bShowRomTitle) {transliteration = languages[language].transliteration + ": "}
   bShowRomTitle = bShowRomTitle && romTitle !== "";
   bShowEngTitle = bShowEngTitle && engTitle !== "";
+
   let additionalTitles = "";
-  if (bShowRomTitle) {additionalTitles += "<br />" + transliteration + romTitle};
+  if (bShowRomTitle) {
+    if (bLanguageIsUndefined) {additionalTitles += "<br />Romanized: " + romTitle}
+    else {
+      //Assumes that the romanized title is only given in the first chosen language ("the main language")
+      additionalTitles += "<br />" + configLanguages.arrLyricsTransliteration[0] + ": " + romTitle;
+    };
+  };
   if (bShowEngTitle) {additionalTitles += "<br />" + "English: " + engTitle}
 
   //Fetch additional information
@@ -138,7 +206,8 @@ function generateInfoBox() {
   };
   let strSingers = toHTML(read_text("singer"));
   let strProducers = toHTML(read_text("producers"));
-  let strDescription = toHTML(read_text("description"));
+  let strDescription = "";
+  if (read_text("description") !== "") {strDescription = "\n|description = " + toHTML(read_text("description")) + "\n";};
 
   //Initialize variables to fetch view count and play links information  
   let strPlayLinks = "";
@@ -216,7 +285,7 @@ function generateInfoBox() {
   strInfoBox = strInfoBox.replace("$PLAYLINKS", strPlayLinks);
   strInfoBox = strInfoBox.replace("$ORIGINAL_TITLE", origTitle);
   strInfoBox = strInfoBox.replace("$ADDITIONAL_TITLES", additionalTitles);
-  strInfoBox = strInfoBox.replace("$DESCRIPTION", strDescription);
+  strInfoBox = strInfoBox.replace("\n$DESCRIPTION\n", strDescription);
 
   return strInfoBox;
 
@@ -227,11 +296,10 @@ function generateLyrics() {
   let strWikiLyrics = "==Lyrics==\n";
   let strLyricsTable = "";
 
-  let language = document.getElementById("languagelist").selectedIndex - 1;
   let bTranslationExists = false;
   let bTranslationNotesExist = false;
   let bTranslationIsOfficial = document.getElementById("officialtranslation").checked;
-  let bLyricsAreRomanized = false;
+  let bLyricsAreRomanized = configLanguages.bLanguageIsTransliterated;
   let translatorName = read_text("translator").toString();
   let translatorLicense = get_translator_license(translatorName);
 
@@ -248,7 +316,7 @@ function generateLyrics() {
 #SINGING_PARTS
 |}`
 
-  if (language == 0) {
+  if (!configLanguages.bLanguageIsNonEnglish) {
     //Song is English
     if (Array.isArray(arrDataLyrics) && arrDataLyrics.length) {
 
@@ -283,29 +351,24 @@ function generateLyrics() {
       });
     }
 
-    //TODO: Tweak to only add English column if a translation exists
     wikiNumColumns = numColumns - 1;
-    if (!bTranslationExists && false) {wikiNumColumns = wikiNumColumns - 1;};
-
-    //Check if lyrics are romanized
-    bLyricsAreRomanized = (language == -1 || "transliteration" in languages[language]);
+    if (!bTranslationExists) {wikiNumColumns = wikiNumColumns - 1;};
 
     //Add wiki table headers
     strLyricsTable = "{| style=\"width:100%\"\n";
-    if (language == -1) {
+    if (configLanguages.bLanguageIsUndefined) {
       //No language specified
       strLyricsTable += "|'''''Original'''''\n";
       strLyricsTable += "|'''''Romanized'''''\n"
     }
     else {
-      strLyricsTable += "|'''''" + languages[language].name + "'''''\n";
+      strLyricsTable += "|'''''" + configLanguages.arrLyricsOrigLang.join("/") + "'''''\n";
       //Add romanized lyrics column
       if (bLyricsAreRomanized) {
-        strLyricsTable += "|'''''" + languages[language].transliteration + "'''''\n"
+        strLyricsTable += "|'''''" + configLanguages.arrLyricsTransliteration.join("/") + "'''''\n"
       };
     };
-    //TODO: Tweak to only add English column if a translation exists
-    if (bTranslationExists || true) {
+    if (bTranslationExists) {
       if (bTranslationIsOfficial) {strLyricsTable += "|{{OfficialEnglish}}\n";}
       else {strLyricsTable += "|'''''English'''''\n"};
     };
@@ -343,12 +406,11 @@ function generateLyrics() {
         }
 
         //Add each line otherwise
-        //TODO: Tweak to only add English column if a translation exists
         else {
           setLyricsColours.add(rowStyling);
           strLyricsTable += "|" + rowOrigLyrics + "\n";
           if (bLyricsAreRomanized) {strLyricsTable += "|" + rowRomLyrics + "\n";};
-          if (bTranslationExists || true) {strLyricsTable += "|" + rowEngLyrics + "\n";};
+          if (bTranslationExists) {strLyricsTable += "|" + rowEngLyrics + "\n";};
         }
       });
     }
@@ -395,44 +457,64 @@ function generateExternalLinks() {
   //console.log("PASSED EXT LINKS");
   let strWikiExternalLinks = "";
   if (Array.isArray(arrDataExtLinks) && arrDataExtLinks.length) {
-    let strExtLink = "";
-
-    let url = "";
-    let description = "";
-    let wiki = "";
-    let page = "";
-
+    
     let bExtLinkExists = arrDataExtLinks.some(function (extLink) {return extLink[0].trim() !== "";});;
     if (!bExtLinkExists) {return strWikiExternalLinks};
     strWikiExternalLinks = "==External Links==";
 
-    arrDataExtLinks.forEach(extLink => {
-      url = detagHref(extLink[0].trim());
-      description = extLink[1];
-      //VocaDB
-      //if (url.match(/^https?:\/\/vocadb\.net\/.*/)) {
-        //strExtLink = "*{{VDB|" + url.replace(/^https?:\/\/vocadb\.net\//, "") + "}}";
-      //}
-      //Fandom Wiki
-      if (url.match(/^https?:\/\/.*\.fandom\.com\/.*/)) {
-        wiki = url.replace(/^https?:\/\//, "").replace(/\.fandom\.com\/wiki\/.*/, "");
-        page = url.replace(/^https?:\/\/.*\.fandom\.com\/wiki\//, "");
-        page = decodeURI(page);
-        strExtLink = "*[[w:c:" + wiki + ":" + page + "|" + description + "]]";
-      }
-      //Wikipedia
-      else if (url.match(/^https?:\/\/en\.wikipedia\.org\/wiki\/.*/)) {
-        page = url.replace(/^https?:\/\/en\.wikipedia\.org\/wiki\//, "");
-        page = decodeURI(page);
-        strExtLink = "*[[wikipedia:" + page + "|" + description + "]]";
-      }
-      else {
-        strExtLink = "*[" + url + " " + description + "]";
-      };
-      strWikiExternalLinks = addItemToListString(strExtLink, strWikiExternalLinks, "\n");
-    });
+    let arrOfficialLinks = arrDataExtLinks.filter(function (extLink) {return extLink[2];});
+    let arrUnofficialLinks = arrDataExtLinks.filter(function (extLink) {return !extLink[2];});
+
+    strWikiExternalLinks += listLinksInWikitextFormat(arrOfficialLinks, true);
+    strWikiExternalLinks += listLinksInWikitextFormat(arrUnofficialLinks, false);
+    
   }
   return strWikiExternalLinks;
+}
+
+function listLinksInWikitextFormat(arrLinks, bLinksAreOfficial) {
+
+  let strWikiExternalLinks = "";
+
+  if (!Array.isArray(arrLinks) || arrLinks.length == 0) {return strWikiExternalLinks;}
+
+  if (bLinksAreOfficial) {strWikiExternalLinks += "\n===Official===";}
+  else {strWikiExternalLinks += "\n===Unofficial===";};
+
+  let url = "";
+  let description = "";
+  let wiki = "";
+  let page = "";
+  let strExtLink = "";
+
+  arrLinks.forEach(extLink => {
+    url = detagHref(extLink[0].trim());
+    description = extLink[1];
+    //VocaDB
+    if (url.match(/^https?:\/\/vocadb\.net\/.*/)) {
+      strExtLink = "*{{VDB|" + url.replace(/^https?:\/\/vocadb\.net\//, "") + "|" + description + "}}";
+    }
+    //Fandom Wiki
+    else if (url.match(/^https?:\/\/.*\.fandom\.com\/.*/)) {
+      wiki = url.replace(/^https?:\/\//, "").replace(/\.fandom\.com\/wiki\/.*/, "");
+      page = url.replace(/^https?:\/\/.*\.fandom\.com\/wiki\//, "");
+      page = decodeURI(page);
+      strExtLink = "*[[w:c:" + wiki + ":" + page + "|" + description + "]]";
+    }
+    //Wikipedia
+    else if (url.match(/^https?:\/\/en\.wikipedia\.org\/wiki\/.*/)) {
+      page = url.replace(/^https?:\/\/en\.wikipedia\.org\/wiki\//, "");
+      page = decodeURI(page);
+      strExtLink = "*[[wikipedia:" + page + "|" + description + "]]";
+    }
+    else {
+      strExtLink = "*[" + url + " " + description + "]";
+    };
+    strWikiExternalLinks = addItemToListString(strExtLink, strWikiExternalLinks, "\n");
+  });
+
+  return strWikiExternalLinks;
+
 }
 
 function generateListOfCategories() {
@@ -449,22 +531,25 @@ function generateListOfCategories() {
 }
 
 /*
- * Autoload categories as interpreted from input fields
+ * Autoload categories as interpreted from the input fields
  */
-function autoloadCategories()
-{
+function autoloadCategories() {
 
   let strSingers = "";
   strSingers = read_textbox("singer").toString();
   strSingers = strSingers.replace(/<small>.*<\/small>/, "");
   let arrSingers = strSingers.match(/\[\[[^\[\]:]*\]\]/gm);
+  if (Array.isArray(arrSingers)) {arrSingers = arrSingers.map(singer => singer.replace(/\|.*(?=\]\])/,""));}
   
   strSingers = read_textbox("singer").toString();
   let arrMinorSingers = strSingers.match(/<small>.*<\/small>/gm);
   if (Array.isArray(arrMinorSingers)) {
     strSingers = arrMinorSingers[0];
     arrMinorSingers = strSingers.match(/\[\[[^\[\]:]*\]\]/gm);
+    if (Array.isArray(arrMinorSingers)) {arrMinorSingers = arrMinorSingers.map(singer => singer.replace(/\|.*(?=\]\])/,""));};
   };
+  //console.log(arrSingers);
+  //console.log(arrMinorSingers);
   
   let strProducers = read_textbox("producers").toString();
   let arrProducers = strProducers.match(/\[\[[^\[\]:]*\]\]\s\([^\(\)]*\)/gm);
@@ -474,30 +559,37 @@ function autoloadCategories()
   let arrProdRoles = [];
   let bProdWikiCat = {};
 
-  //Categories: Vocal Synth Groups
-  //let strAutoloadCategories = "";
-  let strAutoloadCategories = "Vocaloid original songs";
-  if (arrFeaturingOtherSynths.size > 0) { 
-    arrFeaturingOtherSynths.forEach(featuredSynth => {
-      strAutoloadCategories = strAutoloadCategories.concat("\n", "Songs featuring " + featuredSynth);
-    });
-  }
+  //Initialize
+  let strAutoloadCategories = "Songs";
 
   //Categories: Language
-  //strAutoloadCategories = strAutoloadCategories + "\n" + "Album Only songs";
-  let language = document.getElementById("languagelist").selectedIndex - 1;
-  if (language >= 0) {strAutoloadCategories += "\n" + languages[language].name + " original songs";}
+  determineLanguages();
+  if (!configLanguages.bLanguageIsUndefined) {
+    configLanguages.arrLyricsOrigLang.forEach( language => {
+      strAutoloadCategories += "\n" + language + " songs";
+    });
+  };
+
+  //Categories: Vocal Synth Groups
+  let arrFeaturingSynths = [];
+  arrFeaturingSynths = $("#featuredsynth").dropdown("get value").split(",");
+  //console.log(arrFeaturingSynths);
+  if (arrFeaturingSynths.length && arrFeaturingSynths[0] !== "") { 
+    arrFeaturingSynths.forEach(featuredSynth => {
+      strAutoloadCategories += "\n" + featuredSynth + " original songs";
+    });
+  }
 
   //Categories: Singers (including minor singers)
   if (Array.isArray(arrSingers) && arrSingers.length) { 
     arrSingers.forEach(singer => {
       singer = singer.substring(2, singer.length-2);
-      strAutoloadCategories += "\n" + singer + " original songs";
+      strAutoloadCategories += "\nSongs featuring " + singer;
     });
     if (Array.isArray(arrMinorSingers) && arrMinorSingers.length) {
       arrMinorSingers.forEach(singer => {
         singer = singer.substring(2, singer.length-2);
-        strAutoloadCategories += "\n" + singer + " original songs";
+        strAutoloadCategories += "\nSongs featuring " + singer;
       });
     }
     //Categories: Number of singers (excluding minor singers)
@@ -527,6 +619,7 @@ function autoloadCategories()
             bProdWikiCat["tuning"] = true;
             break;
           case "arrange":
+          case "arrangement":
             bProdWikiCat["arrangement"] = true;
             break;
           case "illust":
@@ -537,6 +630,9 @@ function autoloadCategories()
             bProdWikiCat["visuals"] = true;
             break;
           case "mix":
+          case "master":
+          case "mastering":
+          case "instruments":
           case "other":
             bProdWikiCat["other"] = true;
             break;
@@ -574,17 +670,16 @@ function autoloadCategories()
   if (bSongIsAlbumOnly) {strAutoloadCategories += "\n" + "Album Only songs"};
 
   //Categories: Needing translation
-  if (language == -1 || language > 0) {
+  if (configLanguages.bLanguageIsNonEnglish) {
     let arrTranslatedLyrics = lyricsTable.getColumnData(lyricsTable.getConfig().colWidths.length - 1);
     let bTranslationExists = arrTranslatedLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";});
     //console.log(bTranslationExists);
     if (!bTranslationExists) {
-      strAutoloadCategories += "\n" + "Intervention Required";
       strAutoloadCategories += "\n" + "Pages in need of English translation";
     }
   }
   
-  document.getElementById("categories").value = strAutoloadCategories;
+  $("#categories").val(strAutoloadCategories);
 
 }
 
@@ -594,89 +689,149 @@ function autoloadCategories()
  */
 function check_form_for_errors() {
 
-  error_resets();
-  let error = false;
+  console.log("checking errors");
 
-  let elementValue = "";
+  error_resets();
+  let arrStrWarning = [];
+  let bRecommendToReloadCategories = false;
 
   //No language selected?
-  let language = document.getElementById("languagelist").selectedIndex - 1;
-  error = highlight_field("languagelist", language < 0, "You haven't chosen a language.") || error;
-  
+  let language = $("#languagelist").dropdown("get value").trim();
+  if (language == "") {
+    arrStrWarning.push("You haven't chosen a language.");
+    $("#languagelist").toggleClass("error",true);
+    bRecommendToReloadCategories = true;
+  }
+
   //No original title given?
-  elementValue = read_text("originaltitle");
-  error = highlight_field("originaltitle", elementValue == "", "You haven't entered a song title.") || error;
+  if (read_text("originaltitle") == "") {
+    arrStrWarning.push("You haven't entered a song title.");
+    $("#originaltitle").parent().toggleClass("error",true);
+  }
 
   //No upload date given?
   let dateOfPublication = document.getElementById("uploaddate").valueAsDate;
-  error = highlight_field("uploaddate", dateOfPublication == null, "You haven't entered the date of publication.") || error;
+  if (dateOfPublication == null) {
+    arrStrWarning.push("You haven't entered the date of publication.");
+    $("#uploaddate").toggleClass("error",true);
+  }
 
   //Non-recognized colour format for infobox
-  error = highlight_field("bgcolour", !validate_colour(read_text("bgcolour")), "There is an error with the background colour") || error;
-  error = highlight_field("fgcolour", !validate_colour(read_text("fgcolour")), "There is an error with the foreground colour") || error;
+  if (!validate_colour(read_text("bgcolour"))) {
+    arrStrWarning.push("There is an error with the background colour.");
+    $("#bgcolour").parent().toggleClass("error",true);
+  }
+  if (!validate_colour(read_text("fgcolour"))) {
+    arrStrWarning.push("There is an error with the foreground colour.");
+    $("#fgcolour").parent().toggleClass("error",true);
+  }
 
   //Non-recognized colour format in lyrics table
   let arrStyleLyrics = lyricsTable.getColumnData(0);
-  error = highlight_field("lyricstablecaption", 
-    arrStyleLyrics.some(function (rowLyrics) {return !validate_colour(rowLyrics.trim());}), 
-    "There is an error with one of the colours in the lyrics table.") 
-    || error;
+  if (arrStyleLyrics.some(function (rowLyrics) {return !validate_colour(rowLyrics.trim());})) {
+    arrStrWarning.push("There is an error with one of the colours in the lyrics table.");
+    $("#lyricstablecaption").toggleClass("error",true);
+  }
 
   //No information added in singers box?
-  elementValue = read_text("singer");
-  error = highlight_field("singer", elementValue == "", "You haven't listed any singers.") || error;
+  if (read_text("singer") == "") {
+    arrStrWarning.push("You haven't listed any singers.");
+    $("#singer").toggleClass("error",true);
+  }
   //No singer in markup in singers box?
-  let arrSingers = elementValue.match(/\[\[[^\[\]:]*\]\]/gm);
-  error = highlight_field("singer", !Array.isArray(arrSingers), "You need to list at least one singer in markup, e.g. [[Hatsune Miku]]") || error;
+  let arrSingers = read_text("singer").match(/\[\[[^\[\]:]*\]\]/gm);
+  if (!Array.isArray(arrSingers)) {
+    arrStrWarning.push("You need to list at least one singer in markup, e.g. [[Hatsune Miku]]");
+    $("#singer").toggleClass("error",true);
+    bRecommendToReloadCategories = true;
+  }
+
+  //No listed vocal synth engines?
+  let synthengine = $("#featuredsynth").dropdown("get value").trim();
+  if (synthengine == "") {
+    arrStrWarning.push("Please list at least one vocal synth engine, e.g. VOCALOID. Choose \"Other/Unlisted\" if not on the list.");
+    $("#featuredsynth").toggleClass("error",true);
+    bRecommendToReloadCategories = true;
+  }
 
   //No information in producers box?
-  elementValue = read_text("producers");
-  error = highlight_field("producers", elementValue == "", "You haven't listed any producers.") || error;
+  if (read_text("producers") == "") {
+    arrStrWarning.push("You haven't listed any producers. For well-known producers, it is recommended that the producer's name is listed in markup, e.g. [[wowaka]], before you generate the song page.");
+    $("#producers").toggleClass("error",true);
+    bRecommendToReloadCategories = true;
+  }
 
   //No rows in play links table
   arrDataPlayLinks = playLinksTable.getData();
-  error = highlight_field("playlinkscaption", arrDataPlayLinks.length == 0, "No music videos or play links are detected: Is the song an album-only release?") || error;
+  if (!Array.isArray(arrDataPlayLinks) || arrDataPlayLinks.length == 0) {
+    arrStrWarning.push("No music videos or play links are detected. Please check the \"Song is not publicly available\" option if the song is no longer publicly available or check the \"Album-only Release\" option if the song is released on albums only");
+    $("#playlinkscaption").toggleClass("error",true);
+    bRecommendToReloadCategories = true;
+  }
 
   //No URL supplied in play links table
   let bSongIsAlbumOnly = document.getElementById("albumonly").checked;
-  error = highlight_field("playlinkscaption", 
-    !arrDataPlayLinks.some(function (rowPlayLink) {return rowPlayLink[1].trim() !== "";}) && !bSongIsAlbumOnly, 
-    "No URL to any music video or play link is given. Is the song an album-only release?") 
-    || error;
+  let bSongIsUnavailable = document.getElementById("unavailable").checked;
+  let bNoURLDetected = !arrDataPlayLinks.some(function (rowPlayLink) {return rowPlayLink[1].trim() !== "";});
+  if (bNoURLDetected && !bSongIsAlbumOnly && !bSongIsUnavailable) {
+    arrStrWarning.push("No music videos or play links are detected. Please check the \"Song is not publicly available\" option if the song is no longer publicly available or check the \"Album-only Release\" option if the song is released on albums only");
+    $("#playlinkscaption").toggleClass("error",true);
+    bRecommendToReloadCategories = true;
+  }
 
   //Original lyrics is empty
   let arrOrigLyrics = lyricsTable.getColumnData(1);
-  error = highlight_field("lyricstablecaption", 
-    !arrOrigLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";}), 
-    "Original lyrics column is empty.") 
-    || error;
+  if (!arrOrigLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";})) {
+    arrStrWarning.push("Original lyrics column is empty.");
+    $("#lyricstablecaption").toggleClass("error",true);
+  }
 
   //Romanized lyrics is empty
-  if (language < 0 || "transliteration" in languages[language]) {
+  let lyricsTable_numColumn = lyricsTable.getConfig().colWidths.length;
+  //Only check in the case where the romanized lyrics column is set
+  if (lyricsTable_numColumn == 4) {
     let arrRomLyrics = lyricsTable.getColumnData(2);
-    error = highlight_field("lyricstablecaption", 
-      !arrRomLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";}), 
-      "Romanized/transliterated lyrics column is empty.") 
-      || error;
+    if (!arrRomLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";})) {
+      arrStrWarning.push("Romanized/transliterated lyrics column is empty.");
+      $("#lyricstablecaption").toggleClass("error",true);
+    }
   }
 
   //Translation exists, but there's no translator's name
-  if (language !== 0) {
-    elementValue = read_text("translator");
-    let arrEngLyrics = lyricsTable.getColumnData(lyricsTable.getConfig().colWidths.length - 1);
+  //Only check in the case where the English lyrics column is set
+  if (lyricsTable_numColumn > 2) {
+    let arrEngLyrics = lyricsTable.getColumnData(lyricsTable_numColumn - 1);
     let bTranslationExists = arrEngLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";});
-    error = highlight_field("translator", 
-      (bTranslationExists && elementValue == "" && !document.getElementById("officialtranslation").checked), 
-      "Translator is uncredited.") 
-      || error;
+    if (bTranslationExists && read_text("translator") == "" && !document.getElementById("officialtranslation").checked) {
+      arrStrWarning.push("Translator is uncredited.");
+      $("#translator").parent().toggleClass("error",true);
+    }
   }  
 
   //Forgot to autoload categories?
-  elementValue = read_text("categories");
-  error = highlight_field("categories", elementValue == "", "Did you forget to add categories?") || error;
+  if (read_text("categories") == "") {
+    arrStrWarning.push("Did you forget to add categories?");
+    $("#categories").toggleClass("error",true);
+    bRecommendToReloadCategories = true;
+  }
+  
 
-  //Validate 
-  return error;
+  //Write warnings
+  if (arrStrWarning.length) {
+    let strWarning = "<h2>Errors detected:</h2><p><ul>";
+    arrStrWarning.forEach( message => {
+      strWarning += "<li>" + message + "</li>";
+    });
+    strWarning += "</ul></p>";
+    if (bRecommendToReloadCategories) {
+      strWarning += "<p>Please click the \"Autoload Categories\" button again before you generate the song page.</p>"
+    }
+    $("#warnings").html(strWarning);
+    $("#warnings").show();
+    return true;
+  }
+
+  return false;
 
 }
 
@@ -727,46 +882,36 @@ function style_colour(string, colour) {
  * Return whether or not a string is a valid CSS colour.
  */
 function validate_colour(colour) {
- return colour == "" || colour.match(/^#[0-9a-f]{6}$/) || colournames.indexOf(colour) >= 0;
-}
-
-/*
- * Highlight/unhighlight a field according to whether an error
- * has been detected.
- * Output an error message.
- * Return error status for convenience.
- */
-function highlight_field(fieldname, errorstatus, message)
-{
- document.getElementById(fieldname).className =
-  errorstatus ? "texterror" : "";
- if (errorstatus)
- {
-  let errors = document.getElementById("errors");
-  errors.innerHTML += "<p>" + message + "</p>";
- }
- return errorstatus;
+  return colour == "" || colour.match(/^#[0-9a-f]{6}$/) || Object.keys(colournames).includes(colour);
 }
 
 /*
  * Clear errors and warnings.
  */
-function error_resets()
-{
- highlight_field("languagelist", false);
- highlight_field("originaltitle", false);
- highlight_field("bgcolour", false);
- highlight_field("fgcolour", false);
- highlight_field("producers", false);
- highlight_field("uploaddate", false);
- highlight_field("singer", false);
- highlight_field("playlinkscaption", false);
- highlight_field("lyricstablecaption", false);
- highlight_field("translator", false);
- highlight_field("categories", false);
+function error_resets() {
 
- document.getElementById("errors").innerHTML = "";
- document.getElementById("warnings").innerHTML = "";
+  let arrDomElements = [
+    $("#languagelist"),
+    $("#originaltitle").parent(),
+    $("#uploaddate"),
+    $("#bgcolour").parent(),
+    $("#fgcolour").parent(),
+    $("#lyricstablecaption"),
+    $("#singer"),
+    $("#featuredsynth"),
+    $("#producers"),
+    $("#playlinkscaption"),
+    $("#lyricstablecaption"),
+    $("#translator").parent(),
+    $("#categories")
+  ]
+
+  arrDomElements.forEach( domElement => {
+    domElement.toggleClass("error", false);
+  })
+
+  $("#warnings").html("");
+  $("#warnings").hide();
 }
 
 /*

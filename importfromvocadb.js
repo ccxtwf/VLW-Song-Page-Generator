@@ -7,6 +7,7 @@ fetch("listofvocaloid.json")
     .then(Response => Response.json())
     .then(data => {
         listofvocaloid = data;
+        //console.log(listofvocaloid["1"]);
 });
 
 async function importFromVocaDB() {
@@ -25,7 +26,7 @@ async function importFromVocaDB() {
     let extLinks = [];
     let thumbLinks = [];
 
-    arrFeaturingOtherSynths = new Set();
+    let arrFeaturingSynths = new Set();
 
     let siteurl = document.getElementById("preloadfromurl").value.trim();
     //console.log(siteurl);
@@ -75,6 +76,7 @@ async function importFromVocaDB() {
         let artists = vocadbjson.artists;
         let lookupJSonEntry = {};
         let artistName = "";
+        let redirect = "";
         let minorSingers = "";
         let artistCredit = "";
         let groupCredit = "";
@@ -87,8 +89,10 @@ async function importFromVocaDB() {
                         lookupJSonEntry = listofvocaloid[artist.artist.id];
                         //console.log(artist.artist.id);
                         artistName = lookupJSonEntry.fullvoicebankname;
-                        if (lookupJSonEntry.synthgroup == "Vocaloid") {artistName = "[[" + artistName + "]]";}
-                        else {arrFeaturingOtherSynths.add(lookupJSonEntry.synthgroup);}
+                        redirect = lookupJSonEntry.basevoicebankname;
+                        if (artistName == redirect) {artistName = "[[" + artistName + "]]";}
+                        else {artistName = "[[" + artistName + "|" + redirect + "]]";};
+                        arrFeaturingSynths.add(lookupJSonEntry.synthgroup);
                     }
                     catch (error) {
                         console.log(error);
@@ -122,15 +126,22 @@ async function importFromVocaDB() {
                             case "Mixer":
                                 artistCredit = addItemToListString("mix", artistCredit, ", ");
                                 break;
+                            case "Mastering":
+                                artistCredit = addItemToListString("mastering", artistCredit, ", ");
+                                break;
                             case "Lyricist":
                                 artistCredit = addItemToListString("lyrics", artistCredit, ", ");
                                 break;
+                            case "Instrumentalist":
+                                artistCredit = addItemToListString("instruments", artistCredit, ", ");
+                                break;
                             case "Illustrator":
-                                artistCredit = addItemToListString("illust", artistCredit, ", ");
+                                artistCredit = addItemToListString("illustration", artistCredit, ", ");
                                 break;
                             case "Animator":
                                 artistCredit = addItemToListString("PV", artistCredit, ", ");
                                 break;
+                            case "Distributor":
                             case "Publisher":
                                 //groupCredit = "<b>" + artist.name + ":</b>\n";
                                 artistCredit = addItemToListString("publisher", artistCredit, ", ");
@@ -201,34 +212,48 @@ async function importFromVocaDB() {
         let webLinks = vocadbjson.webLinks;
         let weblink_site;
         let weblink_url;
+        let bLinkIsOfficial = false;
         weblink_url = "https://vocadb.net/S/" + vocadbid;
         weblink_url = "<a href=\"" + weblink_url + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + weblink_url + "</a>";
-        extLinks[0] = [weblink_url, "VocaDB"];
+        extLinks[0] = [weblink_url, "VocaDB", false];
         webLinks.forEach(weblink => {
             weblink_site = identify_website(weblink.url, listRecognizedLinks);
             if (weblink_site !== weblink.description) {weblink_site = addItemToListString(weblink.description, weblink_site, " - ");};
             weblink_url = "<a href=\"" + weblink.url + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + weblink.url + "</a>";
-            extLinks.push([weblink_url, weblink_site]);
+            bLinkIsOfficial = weblink.category == "Commercial" || weblink.category == "Official";
+            extLinks.push([weblink_url, weblink_site, bLinkIsOfficial]);
         });
 
         //testOutput();
 
         //Write data to online form
-        document.getElementById("originaltitle").value = originalTitle;
-        document.getElementById("romajititle").value = transliteratedTitle;
-        document.getElementById("translatedtitle").value = englishTitle;
+        $("#originaltitle").val(originalTitle);
+        $("#romajititle").val(transliteratedTitle);
+        $("#translatedtitle").val(englishTitle);
         document.getElementById("uploaddate").valueAsDate = dateOfPublication;
-        document.getElementById("singer").value = singers;
-        document.getElementById("producers").value = producers;
+        $("#singer").val(singers);
+        $("#producers").val(producers);
     
         //Write data to input tables (not including lyrics table)
         if (playLinks.length > 0) playLinksTable.setData(playLinks);
         if (extLinks.length > 0) extLinksTable.setData(extLinks);
+
+        //Add featured synth software
+        console.log(arrFeaturingSynths);
+        console.log(listofsynthengines);
+        arrFeaturingSynths.forEach( featuredSynth => {
+            if (listofsynthengines.includes(featuredSynth)) {
+                $("#featuredsynth").dropdown("set selected", featuredSynth);
+            }
+            else {
+                $("#featuredsynth").dropdown("set selected", "Other Voice Synthesizer");
+            }
+        });
     
         //Add images
-        document.getElementById("thumbrow").style.display = "";
+        $("#thumbrow").show();
         thumbLinks.forEach(thumbLink => {
-            document.getElementById("thumbrowinner").innerHTML = document.getElementById("thumbrowinner").innerHTML + "<img src=\"" + thumbLink[0] + "\" width=\"400\" alt=\"Image not found\" onerror=\"this.onerror=null;this.src=\'" + thumbLink[1] + "\';\" />";
+            $("#thumbrowinner").append("<img src=\"" + thumbLink[0] + "\" width=\"400\" alt=\"Image not found\" onerror=\"this.onerror=null;this.src=\'" + thumbLink[1] + "\';\" />");
         });
 
         //Give alert to end user
