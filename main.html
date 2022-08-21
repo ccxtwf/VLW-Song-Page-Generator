@@ -285,7 +285,7 @@ function populate_language_list() {
 }
 
 /*
- * Populate dropdown box: Language List
+ * Populate dropdown box: Vocal synth engine List
  */
  function populate_vocalsynthenginelist() {
 
@@ -294,7 +294,7 @@ function populate_language_list() {
   strHTML += `<div class="text" style="color:#d4d4d5;">Featuring Synth Engines:</span>
     <i class="dropdown icon"></i></div>
     <div class="menu">\n`;
-  for (let i = 0; i < listofsynthengines.length-1; i++) {
+  for (let i = 0; i < listofsynthengines.length; i++) {
     strHTML += "<div class=\"item\" data-value=\"" + listofsynthengines[i] + "\">" + listofsynthengines[i] + "</div>\n";
     if (i==3) {strHTML += "<hr><div><b>&nbsp;&nbsp;Other voice synthesizers:</b></div>\n";};
   };

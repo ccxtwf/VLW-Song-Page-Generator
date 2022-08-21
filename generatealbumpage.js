@@ -101,9 +101,10 @@ async function importFromVocaDB() {
     let tryRegex = [];
 
     let setOfFeaturedSynths = new Set();
+    let setOfFeaturedEngines = new Set();
     let setOfFeaturedProducers = new Set();
 
-    let siteurl = document.getElementById("preloadfromurl").value.trim();
+    let siteurl = $("#preloadfromurl").val().trim();
     //console.log(siteurl);
     if (validateURL(siteurl)) {
 
@@ -130,6 +131,8 @@ async function importFromVocaDB() {
 
         //Obtain published label, list of featured vocal synths, and list of producers
         let artists = vocadbjson.artists;
+        let artistName = "";
+        let synthEngine = "";
         artists.forEach(artist => {
             switch(artist.categories) {
 
@@ -138,13 +141,14 @@ async function importFromVocaDB() {
                         lookupJSonEntry = listofvocaloid[artist.artist.id];
                         //console.log(artist.artist.id);
                         artistName = lookupJSonEntry.fullvoicebankname;
-                        if (lookupJSonEntry.synthgroup == "Vocaloid") {artistName = "[[" + artistName + "]]";};
+                        synthEngine = lookupJSonEntry.synthgroup;
                     }
                     catch (error) {
                         console.log(error);
                         artistName = artist.name;
                     }
                     setOfFeaturedSynths.add(artistName);
+                    setOfFeaturedEngines.add(synthEngine);
                     break;
 
                 case "Label":
@@ -181,9 +185,10 @@ async function importFromVocaDB() {
         let webLinks = vocadbjson.webLinks;
         let weblink_site;
         let weblink_url;
+        let bLinkIsOfficial = false;
         weblink_url = "https://vocadb.net/Al/" + vocadbid;
         weblink_url = "<a href=\"" + weblink_url + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + weblink_url + "</a>";
-        extLinks[0] = [weblink_url, "VocaDB"];
+        extLinks[0] = [weblink_url, "VocaDB", false];
         webLinks.forEach(weblink => {
             weblink_site = identify_website(weblink.url, listRecognizedLinks);
             if (weblink_site == "Vocaloid Wiki") {
@@ -193,21 +198,32 @@ async function importFromVocaDB() {
             }
             if (weblink_site !== weblink.description) {weblink_site = addItemToListString(weblink.description, weblink_site, " - ");};
             weblink_url = "<a href=\"" + weblink.url + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + weblink.url + "</a>";
-            extLinks.push([weblink_url, weblink_site]);
+            bLinkIsOfficial = weblink.category == "Commercial" || weblink.category == "Official";
+            extLinks.push([weblink_url, weblink_site, bLinkIsOfficial]);
         });
 
         //Write data to online form
-        document.getElementById("originaltitle").value = originalTitle;
-        document.getElementById("romajititle").value = transliteratedTitle;
-        document.getElementById("label").value = label;
-        document.getElementById("singer").value = singers;
-        document.getElementById("producers").value = producers;
-        document.getElementById("vocadbid").value = vocadbid;
-        document.getElementById("vocaloidwikipage").value = vocaloidwikipagename;
+        $("#originaltitle").val(originalTitle);
+        $("#romajititle").val(transliteratedTitle);
+        $("#label").val(label);
+        $("#singer").val(singers);
+        $("#producers").val(producers);
+        $("#vocadbid").val(vocadbid);
+        $("#vocaloidwikipage").val(vocaloidwikipagename);
     
         //Write data to input tables
         if (extLinks.length > 0) extLinksTable.setData(extLinks);
         if (trackList.length > 0) trackListTable.setData(trackList);
+
+        //Add featured synth software
+        setOfFeaturedEngines.forEach( featuredEngine => {
+            if (listofsynthengines.includes(featuredEngine)) {
+                $("#featuredsynth").dropdown("set selected", featuredEngine);
+            }
+            else {
+                $("#featuredsynth").dropdown("set selected", "Other Voice Synthesizer");
+            }
+        });
 
         //Give alert to end user
         window.alert("Loaded successfully");
@@ -221,27 +237,32 @@ async function importFromVocaDB() {
 function autoloadCategories() {
     let strSynths = read_text("singer");
     let strProducers = read_text("producers");
+    let strVocalSynthGroups = $("#featuredsynth").dropdown("get value");
     let arrSynths = strSynths.split(";");
     let arrProducers = strProducers.split(";");
+    let arrVocalSynthGroups = strVocalSynthGroups.split(",");
     let strCategories = "";
-    let tryRegex = [];
+
+    //Featuring software/engines
+    arrVocalSynthGroups.forEach( synthgroup => {
+        strCategories += "Albums featuring " + synthgroup + "\n";
+    });
+
+    //Featuring singers
     arrSynths.forEach( synth => {
         synth = synth.trim();
-        tryRegex = synth.match(/(?<=\[\[).*(?=\]\])/);
-        if (Array.isArray(tryRegex) && tryRegex.length) {
-            synth = tryRegex[0];
-            strCategories += "Albums featuring " + synth + "\n";
-        }
+        strCategories += "Albums featuring " + synth + "\n";
     });
+
+    //Featuring Producers
     arrProducers.forEach( producer => {
         producer = producer.trim();
-        tryRegex = producer.match(/(?<=\[\[).*(?=\]\])/);
-        if (Array.isArray(tryRegex) && tryRegex.length) {
-            producer = tryRegex[0];
-            strCategories += producer + " songs list/Albums\n";
-        }
+        strCategories += producer + " songs list/Albums\n";
     });
-    document.getElementById("categories").value = strCategories;
+
+    //Write categories
+    $("#categories").val(strCategories);
+
 }
 
 /*
@@ -250,63 +271,90 @@ function autoloadCategories() {
  */
 function check_form_for_errors() {
 
-    error_resets();
-    let error = false;
+    console.log("checking errors");
 
-    let elementValue = "";
+    error_resets();
+    let arrStrWarning = [];
+    let bRecommendToReloadCategories = false;
 
     //No original title given?
-    elementValue = read_text("originaltitle");
-    error = highlight_field("originaltitle", elementValue == "", "You haven't entered an album name.") || error;
-
+    if (read_text("originaltitle") == "") {
+        arrStrWarning.push("You haven't entered an album name.");
+        $("#originaltitle").parent().toggleClass("error",true);
+    }
+    
     //Non-recognized colour format for infobox
-    error = highlight_field("bgcolour", !validate_colour(read_text("bgcolour")), "There is an error with the infobox colour") || error;
-
+    if (!validate_colour(read_text("bgcolour"))) {
+        arrStrWarning.push("There is an error with the background colour.");
+        $("#bgcolour").parent().toggleClass("error",true);
+    }
+    
     //No description added
-    elementValue = read_text("description");
-    error = highlight_field("description", elementValue == "", "You must add a short description about the album.") || error;
-
+    if (read_text("description") == "") {
+        arrStrWarning.push("You must add a short description about the album.");
+        $("#description").parent().toggleClass("error",true);
+    }
+    
     //No VocaDB ID
-    elementValue = read_text("vocadbid");
-    error = highlight_field("vocadbid", elementValue == "", "You must add the VocaDB page ID.") || error;
+    if (read_text("vocadbid") == "") {
+        arrStrWarning.push("You must add the VocaDB page ID.");
+        $("#vocadbid").parent().toggleClass("error",true);
+    }
 
     //No tracks added
     let arrTrackList = trackListTable.getData();
-    if (!Array.isArray(arrTrackList) || arrTrackList.length == 0) {
-        error = highlight_field("tracklisttablecaption", 
-            true, "You must add at least one song to the tracklist.") 
-            || error;
+    if (!Array.isArray(arrTrackList) || arrTrackList.length == 0 || 
+        !arrTrackList.some(function (rowTrack) {return rowTrack[2] !== "";})) {
+        arrStrWarning.push("You must add at least one song to the tracklist.");
+        $("#tracklisttablecaption").toggleClass("error",true);
     }
     else {
         //Tracklist issues
-        error = highlight_field("tracklisttablecaption", 
-            arrTrackList.some(function (rowTrack) {return rowTrack[1] == "";}), 
-            "You must add the track listing number to all tracks.") 
-            || error;
-        error = highlight_field("tracklisttablecaption", 
-            arrTrackList.some(function (rowTrack) {return isNaN(rowTrack[0])}), 
-            "The disc number must be numeric.") 
-            || error;
-        error = highlight_field("tracklisttablecaption", 
-            arrTrackList.some(function (rowTrack) {return isNaN(rowTrack[1])}), 
-            "The track listing number must be numeric.") 
-            || error;
-        error = highlight_field("tracklisttablecaption", 
-            arrTrackList.some(function (rowTrack) {return rowTrack[2].trim() == "";}), 
-            "You must add a track name to all tracks.") 
-            || error;
-        error = highlight_field("tracklisttablecaption", 
-            arrTrackList.some(function (rowTrack) {return rowTrack[4].trim() == "";}), 
-            "You must add featured producers & singers to all tracks, or specify that the song is an instrumental if there are no singers.") 
-            || error;
+        if (arrTrackList.some(function (rowTrack) {return rowTrack[1] == "";})) {
+            arrStrWarning.push("You must add the track listing number to all tracks.");
+            $("#tracklisttablecaption").toggleClass("error",true);
+        }
+        if (arrTrackList.some(function (rowTrack) {return isNaN(rowTrack[0])})) {
+            arrStrWarning.push("The disc number must be numeric.");
+            $("#tracklisttablecaption").toggleClass("error",true);
+        }
+        if (arrTrackList.some(function (rowTrack) {return isNaN(rowTrack[1])})) {
+            arrStrWarning.push("The track listing number must be numeric.");
+            $("#tracklisttablecaption").toggleClass("error",true);
+        }
+        if (arrTrackList.some(function (rowTrack) {return rowTrack[2].trim() == "";})) {
+            arrStrWarning.push("You must add a track name to all tracks.");
+            $("#tracklisttablecaption").toggleClass("error",true);
+        }
+        if (arrTrackList.some(function (rowTrack) {return rowTrack[4].trim() == "";})) {
+            arrStrWarning.push("You must add featured producers & singers to all tracks, or specify that the song is an instrumental if there are no singers.");
+            $("#tracklisttablecaption").toggleClass("error",true);
+        }
     }
 
     //Forgot to autoload categories?
-    elementValue = read_text("categories");
-    error = highlight_field("categories", elementValue == "", "Did you forget to add categories?") || error;
+    if (read_text("categories") == "") {
+        arrStrWarning.push("Did you forget to add categories?");
+        $("#categories").toggleClass("error",true);
+        bRecommendToReloadCategories = true;
+      }
+    
+    //Write warnings
+    if (arrStrWarning.length) {
+        let strWarning = "<h2>Errors detected:</h2><p><ul>";
+        arrStrWarning.forEach( message => {
+        strWarning += "<li>" + message + "</li>";
+        });
+        strWarning += "</ul></p>";
+        if (bRecommendToReloadCategories) {
+        strWarning += "<p>Please click the \"Autoload Categories\" button again before you generate the song page.</p>"
+        }
+        $("#warnings").html(strWarning);
+        $("#warnings").show();
+        return true;
+    }
 
-    //Validate 
-    return error;
+  return false;
 
 }
 
@@ -385,37 +433,16 @@ function generateAlbumPage() {
 
     //Read external links data
     let arrExtLinks = extLinksTable.getData();
-    let url = "";
-    let linkdesc = "";
-    let wiki = "";
-    let page = "";
-    let strExtLink = "";
     let strExtLinks = "";
     if (Array.isArray(arrExtLinks) && arrExtLinks.length) {
-        strExtLinks = "==External Links==\n"
-        arrExtLinks.forEach( extLink => {
-            url = detagHref(extLink[0].trim());
-            linkdesc = extLink[1];
-            //VocaDB
-            //if (url.match(/^https?:\/\/vocadb\.net\/.*/)) {
-                //strExtLink = "*{{VDB|" + url.replace(/^https?:\/\/vocadb\.net\//, "") + "}}";
-            //}
-            //Fandom Wiki
-            if (url.match(/^https?:\/\/.*\.fandom\.com\/.*/)) {
-                wiki = url.replace(/^https?:\/\//, "").replace(/\.fandom\.com\/wiki\/.*/, "");
-                page = url.replace(/^https?:\/\/.*\.fandom\.com\/wiki\//, "");
-                strExtLink = "*[[w:c:" + wiki + ":" + page + "|" + linkdesc + "]]";
-            }
-            //Wikipedia
-            else if (url.match(/^https?:\/\/en\.wikipedia\.org\/wiki\/.*/)) {
-                page = url.replace(/^https?:\/\/en\.wikipedia\.org\/wiki\//, "");
-                strExtLink = "*[[wikipedia:" + page + "|" + linkdesc + "]]";
-            }
-            else {
-                strExtLink = "*[" + url + " " + linkdesc + "]";
-            };
-            strExtLinks += strExtLink + "\n";
-        });
+        let bExtLinkExists = arrExtLinks.some(function (extLink) {return extLink[0].trim() !== "";});;
+        if (bExtLinkExists) {
+            strExtLinks = "==External Links==";
+            let arrOfficialLinks = arrExtLinks.filter(function (extLink) {return extLink[2];});
+            let arrUnofficialLinks = arrExtLinks.filter(function (extLink) {return !extLink[2];});
+            strExtLinks += listLinksInWikitextFormat(arrOfficialLinks, true);
+            strExtLinks += listLinksInWikitextFormat(arrUnofficialLinks, false);
+        };
     };
 
     //Write data onto the album page template
@@ -431,9 +458,54 @@ function generateAlbumPage() {
     albumpage = albumpage.replace("$_EXTERNAL_LINKS", strExtLinks);
     albumpage = albumpage.replace("$_TRACKLIST", strTrackList);
 
-    document.getElementById("pagetitle").innerHTML = pagename;
-    document.getElementById("output").innerHTML = albumpage;
+    $("#pagetitle").html(pagename);
+    $("#output").html(albumpage);
 }
+
+function listLinksInWikitextFormat(arrLinks, bLinksAreOfficial) {
+
+    let strWikiExternalLinks = "";
+  
+    if (!Array.isArray(arrLinks) || arrLinks.length == 0) {return strWikiExternalLinks;}
+  
+    if (bLinksAreOfficial) {strWikiExternalLinks += "\n===Official===";}
+    else {strWikiExternalLinks += "\n===Unofficial===";};
+  
+    let url = "";
+    let description = "";
+    let wiki = "";
+    let page = "";
+    let strExtLink = "";
+  
+    arrLinks.forEach(extLink => {
+      url = detagHref(extLink[0].trim());
+      description = extLink[1];
+      //VocaDB
+      if (url.match(/^https?:\/\/vocadb\.net\/.*/)) {
+        strExtLink = "*{{VDB|" + url.replace(/^https?:\/\/vocadb\.net\//, "") + "|" + description + "}}";
+      }
+      //Fandom Wiki
+      else if (url.match(/^https?:\/\/.*\.fandom\.com\/.*/)) {
+        wiki = url.replace(/^https?:\/\//, "").replace(/\.fandom\.com\/wiki\/.*/, "");
+        page = url.replace(/^https?:\/\/.*\.fandom\.com\/wiki\//, "");
+        page = decodeURI(page);
+        strExtLink = "*[[w:c:" + wiki + ":" + page + "|" + description + "]]";
+      }
+      //Wikipedia
+      else if (url.match(/^https?:\/\/en\.wikipedia\.org\/wiki\/.*/)) {
+        page = url.replace(/^https?:\/\/en\.wikipedia\.org\/wiki\//, "");
+        page = decodeURI(page);
+        strExtLink = "*[[wikipedia:" + page + "|" + description + "]]";
+      }
+      else {
+        strExtLink = "*[" + url + " " + description + "]";
+      };
+      strWikiExternalLinks = addItemToListString(strExtLink, strWikiExternalLinks, "\n");
+    });
+  
+    return strWikiExternalLinks;
+  
+  }
 
 async function getJSonData(urlquery) {
     try {

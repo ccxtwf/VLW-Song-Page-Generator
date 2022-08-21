@@ -239,8 +239,8 @@ async function importFromVocaDB() {
         if (extLinks.length > 0) extLinksTable.setData(extLinks);
 
         //Add featured synth software
-        console.log(arrFeaturingSynths);
-        console.log(listofsynthengines);
+        //console.log(arrFeaturingSynths);
+        //console.log(listofsynthengines);
         arrFeaturingSynths.forEach( featuredSynth => {
             if (listofsynthengines.includes(featuredSynth)) {
                 $("#featuredsynth").dropdown("set selected", featuredSynth);
