@@ -15,6 +15,7 @@ $_TRACKLIST
 
 $_EXTERNAL_LINKS
 
+$_DEFAULTSORT
 $_CATEGORIES`
 
 //Declaration to local JSon file
@@ -102,7 +103,7 @@ async function importFromVocaDB() {
 
                 case "Producer":
                 default:
-                    setOfFeaturedProducers.add(artist.name);
+                    if (artist.effectiveRoles !== "Illustrator") {setOfFeaturedProducers.add(artist.name);};
                     break;
             }
         }); 
@@ -297,9 +298,9 @@ function check_form_for_errors() {
             $("#tracklisttablecaption").toggleClass("error",true);
         }
         if (arrTrackList.some(function (rowTrack) {
-            let url = rowTrack[3].trim();
+            let url = detagHref(rowTrack[3].trim());
             if (url == "") {return false};
-            let tryRegex = url.match(/(?<=^https?:\/\/vocaloidlyrics\.fandom\.com\/wiki\/).*/);
+            let tryRegex = url.match(/(?<=^https?:\/\/vocaloidlyrics\.fandom\.com\/wiki\/).*/gm);
             if (!Array.isArray(tryRegex) || tryRegex.length == 0) {return true;}
             })) 
         {
@@ -348,16 +349,23 @@ function generateAlbumPage() {
     //Read data
     let romanizedtitle = read_text("romajititle");
     let originaltitle = read_text("originaltitle");
-    if (romanizedtitle == "") {romanizedtitle = originaltitle};
+    if (romanizedtitle == "") {
+        romanizedtitle = originaltitle;
+        originaltitle = "";
+    };
     let label = read_text("label");
     let description = read_text("description");
     let vocadbid = read_text("vocadbid");
     let vocaloidwikipage = read_text("vocaloidwikipage");
     let infoboxcolour = read_text("bgcolour");
+    let sorttemplate = "";
 
     //Get page name
-    let pagename = originaltitle;
-    if (romanizedtitle !== originaltitle) {pagename += " (" + romanizedtitle + ")"};
+    let pagename = "";
+    if (romanizedtitle !== originaltitle) {
+        if (originaltitle == "") {pagename = romanizedtitle}
+        else {pagename = originaltitle + " (" + romanizedtitle + ")"};
+    };
     pagename += " (album)";
 
     //Read list of categories
@@ -421,6 +429,9 @@ function generateAlbumPage() {
         };
     };
 
+    // Set defaultsort template
+    if (romanizedtitle !== originaltitle && originaltitle !== "") {sorttemplate = "{{DEFAULTSORT:" + romanizedtitle + "}}"};
+
     //Write data onto the album page template
     let albumpage = albumPageTemplate;
     albumpage = albumpage.replace("$_ROMANIZED_TITLE", romanizedtitle);
@@ -432,6 +443,7 @@ function generateAlbumPage() {
     albumpage = albumpage.replace("$_BGCOLOUR", infoboxcolour);
     albumpage = albumpage.replace("$_CATEGORIES", strCategories);
     albumpage = albumpage.replace("$_EXTERNAL_LINKS", strExtLinks);
+    albumpage = albumpage.replace("$_DEFAULTSORT", sorttemplate);
     albumpage = albumpage.replace("$_TRACKLIST", strTrackList);
 
     $("#pagetitle").html(pagename);
