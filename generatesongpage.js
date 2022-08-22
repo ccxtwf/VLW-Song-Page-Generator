@@ -1,4 +1,4 @@
-//This script file also refers to the variables languages, lyricsTable, playLinksTable and extLinksTable in the main HTML doc.
+//This script file also refers to the variables lyricsTable, playLinksTable and extLinksTable in the main HTML doc.
 
 const strInfoBoxTemplate = `{{Infobox_Song
 |image = 
@@ -11,54 +11,6 @@ const strInfoBoxTemplate = `{{Infobox_Song
 |link = $PLAYLINKS
 $DESCRIPTION
 }}`;
-
-const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-const pvserviceabbr = {
-  "Niconico":"NN",
-  "bilibili":"BB",
-  "YouTube":"YT",
-  "Vimeo":"VM",
-  "piapro":"PP",
-  "SoundCloud":"SC"
-};
-
-const translatorlicenses =
-  [
-  {id:["aWhimsicalStar☆"],
-    license:"https://awhimsicalstar.dreamwidth.org"},
-  {id:["Azayaka"], 
-    license:"https://echoesofblue.tumblr.com/terms|her website"},
-  {id:["a bunny's translations"],
-    license:"http://bunnyword.tumblr.com/about|her tumblr"},
-  {id:["BambooXZX"],
-    license:"https://bambooxzx.wordpress.com/about/"},
-  {id:["Bluepenguin", "EJ Translations"],
-    license:"https://ejtranslations.wordpress.com/"},
-  {id:["CoolMikeHatsune22"],
-    license:"https://coolmikehatsune22.wordpress.com/about-me/"},
-  {id:["Kazabana"],
-    license:"https://kazabana.wordpress.com/about/"},
-  {id:["ElectricRaichu", "Len's Lyrics", "Raichu"],
-    license:"http://lenslyrics.ml/licence.html|his website"},
-  {id:["Magenetra", "Kagamine_Neko", "aquariantwin", "Mellifera_x3"],
-    license:"https://magenetratranslations.tumblr.com/Terms|their tumblr"},
-  {id:["Matchakame"],
-    license:"http://matchakame.tumblr.com/about|her tumblr"},
-  {id:["PeanutSub"],
-    license:"https://peanut-sub.tumblr.com/bya|their blog"},
-  {id:["poppochan28"],
-    license:"https://poppochan.dreamwidth.org/438.html|their blog"},
-  {id:["Pricecheck Translations"],
-    license:"http://pricechecktranslations.tumblr.com/about|her tumblr"},
-  {id:["Releska"],
-    license:"https://releska.com/|his blog"},
-  {id:["TsunaguSubs"],
-    license:"https://tsunagusubs.github.io/#faq|her website"},
-  {id:["shiyuki332", "Shiyuki", "Shiyuki332"],
-    license:"https://twitter.com/shiyuki332/status/1256815663663837184|their twitter"},
-  {id:["Yumemiru Sekai"],
-    license:"https://yumemirusekai.wordpress.com/faq/|their blog"}
-  ];
 
 /*
  * Declarations of arrays to contain data from custom JSpreadsheet tables
@@ -692,56 +644,57 @@ function check_form_for_errors() {
   console.log("checking errors");
 
   error_resets();
+  let arrStrError = [];
   let arrStrWarning = [];
   let bRecommendToReloadCategories = false;
 
   //No language selected?
   let language = $("#languagelist").dropdown("get value").trim();
   if (language == "") {
-    arrStrWarning.push("You haven't chosen a language.");
+    arrStrError.push("You haven't chosen a language.");
     $("#languagelist").toggleClass("error",true);
     bRecommendToReloadCategories = true;
   }
 
   //No original title given?
   if (read_text("originaltitle") == "") {
-    arrStrWarning.push("You haven't entered a song title.");
+    arrStrError.push("You haven't entered a song title.");
     $("#originaltitle").parent().toggleClass("error",true);
   }
 
   //No upload date given?
   let dateOfPublication = document.getElementById("uploaddate").valueAsDate;
   if (dateOfPublication == null) {
-    arrStrWarning.push("You haven't entered the date of publication.");
+    arrStrError.push("You haven't entered the date of publication.");
     $("#uploaddate").toggleClass("error",true);
   }
 
   //Non-recognized colour format for infobox
   if (!validate_colour(read_text("bgcolour"))) {
-    arrStrWarning.push("There is an error with the background colour.");
+    arrStrError.push("There is an error with the background colour.");
     $("#bgcolour").parent().toggleClass("error",true);
   }
   if (!validate_colour(read_text("fgcolour"))) {
-    arrStrWarning.push("There is an error with the foreground colour.");
+    arrStrError.push("There is an error with the foreground colour.");
     $("#fgcolour").parent().toggleClass("error",true);
   }
 
   //Non-recognized colour format in lyrics table
   let arrStyleLyrics = lyricsTable.getColumnData(0);
   if (arrStyleLyrics.some(function (rowLyrics) {return !validate_colour(rowLyrics.trim());})) {
-    arrStrWarning.push("There is an error with one of the colours in the lyrics table.");
+    arrStrError.push("There is an error with one of the colours in the lyrics table.");
     $("#lyricstablecaption").toggleClass("error",true);
   }
 
   //No information added in singers box?
   if (read_text("singer") == "") {
-    arrStrWarning.push("You haven't listed any singers.");
+    arrStrError.push("You haven't listed any singers.");
     $("#singer").toggleClass("error",true);
   }
   //No singer in markup in singers box?
   let arrSingers = read_text("singer").match(/\[\[[^\[\]:]*\]\]/gm);
   if (!Array.isArray(arrSingers)) {
-    arrStrWarning.push("You need to list at least one singer in markup, e.g. [[Hatsune Miku]]");
+    arrStrError.push("You need to list at least one singer in markup, e.g. [[Hatsune Miku]]");
     $("#singer").toggleClass("error",true);
     bRecommendToReloadCategories = true;
   }
@@ -749,22 +702,30 @@ function check_form_for_errors() {
   //No listed vocal synth engines?
   let synthengine = $("#featuredsynth").dropdown("get value").trim();
   if (synthengine == "") {
-    arrStrWarning.push("Please list at least one vocal synth engine, e.g. VOCALOID. Choose \"Other/Unlisted\" if not on the list.");
+    arrStrError.push("Please list at least one vocal synth engine, e.g. VOCALOID. Choose \"Other/Unlisted\" if not on the list.");
     $("#featuredsynth").toggleClass("error",true);
     bRecommendToReloadCategories = true;
   }
 
   //No information in producers box?
-  if (read_text("producers") == "") {
-    arrStrWarning.push("You haven't listed any producers. For well-known producers, it is recommended that the producer's name is listed in markup, e.g. [[wowaka]], before you generate the song page.");
+  let strProducers = read_text("producers");
+  if (strProducers == "") {
+    arrStrError.push("You haven't listed any producers. For well-known producers, it is recommended that the producer's name is listed in markup, e.g. [[wowaka]], before you generate the song page.");
     $("#producers").toggleClass("error",true);
     bRecommendToReloadCategories = true;
+  }
+
+  //No producers in markup?
+  let tryRegex = strProducers.match(/\[\[[^\[\]:]*\]\]\s\([^\(\)]*\)/gm);
+  if (!Array.isArray(tryRegex) || tryRegex.length) {
+    arrStrWarning.push("If the producer already has a page on Vocaloid Lyrics wiki, then you should add the name of that producer in markup, e.g. \"[[wowaka]] (music)\" or \"[[nagimiso]] (illustration)\". Clicking the \"Autoload Categories\" button again in this case will automatically generate the category for that producer.");
+    //bRecommendToReloadCategories = true;
   }
 
   //No rows in play links table
   arrDataPlayLinks = playLinksTable.getData();
   if (!Array.isArray(arrDataPlayLinks) || arrDataPlayLinks.length == 0) {
-    arrStrWarning.push("No music videos or play links are detected. Please check the \"Song is not publicly available\" option if the song is no longer publicly available or check the \"Album-only Release\" option if the song is released on albums only");
+    arrStrError.push("No music videos or play links are detected. Please check the \"Song is not publicly available\" option if the song is no longer publicly available or check the \"Album-only Release\" option if the song is released on albums only");
     $("#playlinkscaption").toggleClass("error",true);
     bRecommendToReloadCategories = true;
   }
@@ -774,7 +735,7 @@ function check_form_for_errors() {
   let bSongIsUnavailable = document.getElementById("unavailable").checked;
   let bNoURLDetected = !arrDataPlayLinks.some(function (rowPlayLink) {return rowPlayLink[1].trim() !== "";});
   if (bNoURLDetected && !bSongIsAlbumOnly && !bSongIsUnavailable) {
-    arrStrWarning.push("No music videos or play links are detected. Please check the \"Song is not publicly available\" option if the song is no longer publicly available or check the \"Album-only Release\" option if the song is released on albums only");
+    arrStrError.push("No music videos or play links are detected. Please check the \"Song is not publicly available\" option if the song is no longer publicly available or check the \"Album-only Release\" option if the song is released on albums only");
     $("#playlinkscaption").toggleClass("error",true);
     bRecommendToReloadCategories = true;
   }
@@ -782,7 +743,7 @@ function check_form_for_errors() {
   //Original lyrics is empty
   let arrOrigLyrics = lyricsTable.getColumnData(1);
   if (!arrOrigLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";})) {
-    arrStrWarning.push("Original lyrics column is empty.");
+    arrStrError.push("Original lyrics column is empty.");
     $("#lyricstablecaption").toggleClass("error",true);
   }
 
@@ -792,25 +753,31 @@ function check_form_for_errors() {
   if (lyricsTable_numColumn == 4) {
     let arrRomLyrics = lyricsTable.getColumnData(2);
     if (!arrRomLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";})) {
-      arrStrWarning.push("Romanized/transliterated lyrics column is empty.");
+      arrStrError.push("Romanized/transliterated lyrics column is empty.");
       $("#lyricstablecaption").toggleClass("error",true);
     }
   }
 
   //Translation exists, but there's no translator's name
+  //Someone's name is given in the translation, but no translation exists
   //Only check in the case where the English lyrics column is set
   if (lyricsTable_numColumn > 2) {
     let arrEngLyrics = lyricsTable.getColumnData(lyricsTable_numColumn - 1);
     let bTranslationExists = arrEngLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";});
-    if (bTranslationExists && read_text("translator") == "" && !document.getElementById("officialtranslation").checked) {
-      arrStrWarning.push("Translator is uncredited.");
-      $("#translator").parent().toggleClass("error",true);
+    let bTranslatorIsCredited = (read_text("translator") !== "" || document.getElementById("officialtranslation").checked);
+    if (bTranslationExists && !bTranslatorIsCredited) {
+      arrStrWarning.push("A translation exists, but the translator is uncredited. Is it made by an anonymous contributor?");
+      //$("#translator").parent().toggleClass("error",true);
     }
-  }  
-
+    if (!bTranslationExists && bTranslatorIsCredited) {
+      arrStrWarning.push("A translator is credited, but the translation column is empty.");
+      //$("#translator").parent().toggleClass("error",true);
+    }
+  }
+  
   //Forgot to autoload categories?
   if (read_text("categories") == "") {
-    arrStrWarning.push("Did you forget to add categories?");
+    arrStrError.push("Did you forget to add categories?");
     $("#categories").toggleClass("error",true);
     bRecommendToReloadCategories = true;
   }
@@ -818,49 +785,30 @@ function check_form_for_errors() {
 
   //Write warnings
   if (arrStrWarning.length) {
-    let strWarning = "<h2>Errors detected:</h2><p><ul>";
+    let strWarning = "<h2>Warning</h2><p><ul>";
     arrStrWarning.forEach( message => {
       strWarning += "<li>" + message + "</li>";
     });
     strWarning += "</ul></p>";
-    if (bRecommendToReloadCategories) {
-      strWarning += "<p>Please click the \"Autoload Categories\" button again before you generate the song page.</p>"
-    }
     $("#warnings").html(strWarning);
     $("#warnings").show();
+  }
+  if (arrStrError.length) {
+    let strError = "<h2>Errors detected:</h2><p><ul>";
+    arrStrError.forEach( message => {
+      strError += "<li>" + message + "</li>";
+    });
+    strError += "</ul></p>";
+    if (bRecommendToReloadCategories) {
+      strError += "<p>Please click the \"Autoload Categories\" button again before you generate the song page.</p>"
+    }
+    $("#error").html(strError);
+    $("#error").show();
     return true;
   }
 
   return false;
 
-}
-
-/*
- * Return a license string if the given translator is recognized as
- * having specific license conditions. Otherwise return an empty string.
- */
-function get_translator_license(translator)
-{
- for (let i = 0; i < translatorlicenses.length; ++i)
- {
-  if (translatorlicenses[i].id.indexOf(translator) >= 0)
-   return "{{TranslatorLicense|" + translatorlicenses[i].id[0] +
-    "|" + translatorlicenses[i].license + "}}\n";
- }
- return "";
-}
-
-/*
- * Function for adding item to a string representing a list of items.
- */
-function addItemToListString(item, liststr, delim) {
-    if (liststr == "") {
-        liststr = item;
-    }
-    else if (item !== "") {
-        liststr += delim + item;
-    }
-    return liststr;
 }
 
 /*
@@ -876,13 +824,6 @@ function toHTML(string) {
 function style_colour(string, colour) {
   if (colour !== "" && validate_colour(colour)) {string = "<span style=" + colour + ">" + string + "</span>";};
   return string;
-}
-
-/*
- * Return whether or not a string is a valid CSS colour.
- */
-function validate_colour(colour) {
-  return colour == "" || colour.match(/^#[0-9a-f]{6}$/) || Object.keys(colournames).includes(colour);
 }
 
 /*
@@ -910,16 +851,8 @@ function error_resets() {
     domElement.toggleClass("error", false);
   })
 
+  $("#error").html("");
+  $("#error").hide();
   $("#warnings").html("");
   $("#warnings").hide();
-}
-
-/*
- * Remove <a href> tag and get displayed URL/text
- */
-function detagHref(strHref) {
-  let linkurl = strHref;
-  let tryRegex = strHref.match(/(?<=\<a href=\".*\".*\>).*(?=\<\/a\>)/gm);
-  if (Array.isArray(tryRegex)) {linkurl = tryRegex[0];};
-  return linkurl;
 }

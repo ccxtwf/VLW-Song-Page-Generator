@@ -8,14 +8,16 @@
     <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
     <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
 
-    <script src="extractlyricsfromwiki.js"></script>
+    <script src="shared.js"></script>
+    <script src="lyricseditor.js"></script>
 
 <head>
 <title>Wiki Lyrics Editor</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href='http://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
 <style>
-    body {
-        font-family: sans-serif;
+    :root {
+        font-family: 'Lato','Helvetica Neue',Arial,Helvetica,sans-serif;
         color: navy;
     }
     td {
@@ -34,6 +36,7 @@
     }
     /* table, th, td {border: 1px solid;} */
     button {
+        font-family: 'Lato','Helvetica Neue',Arial,Helvetica,sans-serif;
         color:navy;
         background-color: lightsteelblue;
         border: 1px solid navy;
@@ -105,6 +108,10 @@
         border: 2px solid navy;
         padding: 2px;
         z-index: 30;
+    }
+    .footer {
+        font-size: 8pt; 
+        vertical-align: top;
     }
 </style>
 <h1>Wiki Lyrics Editor</h1>
@@ -220,7 +227,12 @@
         </tr>
     </table>
     <br><br>
-    <p style="font-size: 8pt">Author: <a href="https://coolmikehatsune22.wordpress.com/about-me/" target="_blank" rel="noopener noreferrer">CoolMikeHatsune22</a><br>Github Repository: <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator" target="_blank" rel="noopener noreferrer">VLW Song Page Generator</a><br>Re-use and modification permitted under the CC license.</p>
+    <table width=100%>
+        <tr>
+          <td width=50% class="footer"><p>Author: <a href="https://coolmikehatsune22.wordpress.com/about-me/" target="_blank" rel="noopener noreferrer">CoolMikeHatsune22</a>, based on earlier work by <a href="https://vocaloidlyrics.fandom.com/wiki/User:ElectricRaichu" target="_blank" rel="noopener noreferrer">ElectricRaichu</a> and <a href="https://vocaloidlyrics.fandom.com/wiki/User:Nefere" target="_blank" rel="noopener noreferrer">Nefere</a>.<br>Powered by <a href="https://github.com/jspreadsheet/ce" target="_blank" rel="noopener noreferrer">JSpreadsheet</a><br><br>Github Repository: <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator" target="_blank" rel="noopener noreferrer">VLW Song Page Generator</a><br>Re-use and modification permitted under the CC license.</p><p>v2.1.0 - Update code: 000000</p></td>
+          <td width=50% class="footer" style="text-align: right;"><p>Navigation:<br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/main.html" target="_blank" rel="noopener noreferrer">Song Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/album.html" target="_blank" rel="noopener noreferrer">Album Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/lyricseditor.html" target="_blank" rel="noopener noreferrer">Advanced Lyrics Editing</a></ul></p></td>
+        </tr>
+      </table>
 
     <script>
 

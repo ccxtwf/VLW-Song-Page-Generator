@@ -1,5 +1,4 @@
-
-//This script file also refers to the variables listPVService, listRecognizedLinks, lyricsTable, playLinksTable and extLinksTable in the main HTML doc.
+//This script file also refers to the variables playLinksTable and extLinksTable in the main HTML doc.
 
 //Declaration to local JSon file
 let listofvocaloid;
@@ -284,22 +283,6 @@ function getVocaDBID(siteurl) {
     let tryregex = siteurl.match(/(?<=^https?:\/\/vocadb\.net\/S\/)\d*/gm);
     if (Array.isArray(tryregex)) {siteurl = tryregex[0];};
     return siteurl;
-}
-
-function addItemToListString(item, liststr, delim) {
-    if (liststr == "") {liststr = item;}
-    else if (item !== "") {liststr += delim + item;}
-    return liststr;
-}
-
-function identify_website(linkurl, listwebsite)
-{
- for (var i = 0; i < listwebsite.length; ++i)
- {
-  if (linkurl.match(listwebsite[i].re))
-   return listwebsite[i].site;
- }
- return "";
 }
 
 function testOutput() {

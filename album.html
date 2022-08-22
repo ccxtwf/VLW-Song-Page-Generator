@@ -1,0 +1,430 @@
+<html>
+  <!-- JQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+  <!-- 
+    References to Semantic UI
+    For documentation please refer to https://semantic-ui.com/
+  -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+
+  <!-- 
+    References to JSpreadsheet CE v4 external library, for custom spreadsheet input tables 
+    For documentation please refer to https://bossanova.uk/jspreadsheet/v4/
+  -->
+  <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+  <script src="https://jsuites.net/v4/jsuites.js"></script>
+  <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+  <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
+
+  <!-- Reference other scripts in the same project -->
+  <script src="shared.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="generatealbumpage.js"></script>
+  
+<head>
+<title>VLW Album Page Generator</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script>
+  
+/*
+ * Global references to custom spreadsheet input tables
+ */
+let extLinksTable = jspreadsheet(document.getElementById("extlinks"));
+let trackListTable = jspreadsheet(document.getElementById("tracklist"));
+
+/*
+ * Clear the album page form and reset various elements in the HTML doc
+ */
+function more_resets()
+{
+  document.getElementById("albumpageform").reset();
+  error_resets();
+  //Reset dropdown box (Semantic UI)
+  $("#featuredsynth").dropdown("restore defaults");
+  //Clear custom spreadsheet tables
+  trackListTable.setData([...Array(10)].map(e => Array(5).fill("")));
+  extLinksTable.setData([...Array(5)].map(e => ["","",false]));
+  //Reset output
+  $("#output").html("");
+  $("#pagetitle").html("");
+  $("#thumbrowinner").html("");
+  $("#thumbrow").hide();
+}
+
+/*
+ * Clear errors and warnings.
+ */
+ function error_resets() {
+  let arrDomElements = [
+    $("#originaltitle").parent(),
+    $("#bgcolour").parent(),
+    $("#description").parent(),
+    $("#vocadbid").parent(),
+    $("#tracklisttablecaption"),
+    $("#categories")
+  ]
+
+  arrDomElements.forEach( domElement => {
+    domElement.toggleClass("error", false);
+  })
+
+  $("#error").html("");
+  $("#error").hide();
+}
+
+/*
+ * Event handler: Colour picker
+ */
+ function color_changed(id, bPickerIsChanged) {
+  let setcolor;
+  if (bPickerIsChanged) {
+    setcolor = $("#" + id + "picker").val();
+    $("#" + id).val(setcolor);
+  }
+  else {
+    setcolor = $("#" + id).val();
+    if (validate_colour(setcolor)) {
+      if (Object.keys(colournames).includes(setcolor)) {setcolor = colournames[setcolor];};
+      $("#" + id + "picker").val(setcolor);
+    }
+  }
+}
+
+/*
+ * Populate dropdown box: Vocal synth engine List
+ */
+ function populate_vocalsynthenginelist() {
+
+let vsl = $("#featuredsynth");
+let strHTML = "";
+strHTML += `<div class="text" style="color:#d4d4d5;">Featuring Synth Engines:</span>
+  <i class="dropdown icon"></i></div>
+  <div class="menu">\n`;
+for (let i = 0; i < listofsynthengines.length; i++) {
+  strHTML += "<div class=\"item\" data-value=\"" + listofsynthengines[i] + "\">" + listofsynthengines[i] + "</div>\n";
+  if (i==3) {strHTML += "<hr><div><b>&nbsp;&nbsp;Other voice synthesizers:</b></div>\n";};
+};
+strHTML += "<div class=\"item\" data-value=\"Other Voice Synthesizer\">Other/Unlisted</div>\n";
+
+strHTML += "</div>";
+vsl.append(strHTML);
+vsl.dropdown();
+}
+
+/*
+ * Prepare to import from VocaDB
+ */
+ function prepareImportVocaDB() {
+  $('#vocadbloader').addClass('active');
+  setTimeout(function(){
+    more_resets();
+    importFromVocaDB();
+    $('#vocadbloader').removeClass('active');
+  }, 200);
+}
+
+/*
+ * Copy the output to clipboard when button is pressed.
+ */
+function copyOutputToClipboard() {
+  document.getElementById("output").select();
+  document.execCommand("copy");
+}
+
+</script>
+<style></style>
+</head>
+<body>
+<h1>Album page generator for <a href="https://vocaloidlyrics.fandom.com/wiki/Vocaloid_Lyrics_Wiki:Album_Article_Guideline" target="_blank" rel="noopener noreferrer">Vocaloid Lyrics Wiki</a></h1>
+<form onSubmit="return false;" id="albumpageform"></form>
+<table width=100%>
+  <tr>
+    <td class="caption center" width=15%>Pre-load from VocaDB page:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Input URL to VocaDB album page here.<br>e.g. <a href="https://vocadb.net/Al/21149" target="_blank" rel="noopener noreferrer" style="color: azure">https://vocadb.net/Al/21149</a> Comic and Cosmic</span></span></td>
+    <td class="div">
+      <div class="ui input"><input type="text" placeholder="https://vocadb.net/Al/..." id=preloadfromurl size="70" /></div>
+      <button class="ui button" onclick="if (confirm('This will clear all inputted data. Continue?')) {prepareImportVocaDB();}">Preload</button>
+    </td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td><div class="ui loader" id="vocadbloader"></div></td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr id="thumbrow">
+    <td class="caption center">PV Thumbnails:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">This tool will attempt to load the album cover picture from VocaDB.</span></span></td>
+    <td class="div"><div id="thumbrowinner"></div></td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class="caption center">Original title:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Album name in original language<br>(required)</span></span></td>
+    <td class=div>
+      <div class="ui input"><input type="text" placeholder="Original Title" id="originaltitle" size="82" form="albumpageform" /></div>
+    </td>
+  </tr>
+  <tr id="romajititlerow">
+    <td class="caption center">Transliterated title:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Transliterated song title<br>(if non-English original)</span></span></td>
+    <td class=div>
+      <div class="ui input"><input type="text" placeholder="Romaji Title" id="romajititle" size="82" form="albumpageform" /></div>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class="caption center">Infobox bg/fg colour:</td>
+    <td class="tooltip center"><span class=info>&#x1F6C8;<span class="tooltip">Infobox colour<br>hexadecimal colour, e.g., #ff0000<br><em>or</em><br>colour name, e.g., red</span></span></td>
+    <td class=div width=33%>
+      <div class="ui input"><input type="text" value="black" id="bgcolour" size="14" onchange="color_changed('bgcolour',false)" form="albumpageform" /></div>
+      <input type="color" id="bgcolourpicker" value="#000000" style="width:45px" onchange="color_changed('bgcolour',true)" form="albumpageform"/> </td>
+  </tr>
+  <tr>
+    <td class="caption center">Label:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Name of the label that published the album, e.g. EXIT TUNES, KarenT</span></span></td>
+    <td class="div">
+      <div class="ui input"><input type="text" placeholder="KarenT, EXIT Tunes, etc." id=label size="82" form="albumpageform" /></div>
+    </td>
+  </tr>
+  <tr>
+    <td class="caption center">Description:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Add a short description about the album, e.g. "a compilation album by PRODUCERS featuring SYNTHS" or "an album by PRODUCER".<hr>(required)</span></span></td>
+    <td class=div>
+      <div class="ui input"><input type="text" placeholder="an album by PRODUCER" id="description" size="82" form="albumpageform" /></div>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class="caption">Featuring vocal synths:</td>
+    <td class="tooltip"><span class="info">&#x1F6C8;<span class="tooltip">List of featured vocal synths, separated by semi-colon (;).<br>e.g.: Kagamine Rin; Kagamine Len<hr>This will allow the tool to generate a category for each listed vocal synth.</span></span></td>
+    <td class="div"><textarea id="singer" cols="88" rows="3" form="albumpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td class="div">
+      <div class="ui scrolling multiple search dropdown" id="featuredsynth" style="width:500pt; font-size:10pt;" form="albumpageform"></div>
+    </td>
+  </tr>
+  <tr>
+    <td class="caption">Producer(s):</td>
+    <td class="tooltip"><span class="info">&#x1F6C8;<span class="tooltip">List of featured producer(s), separated by semi-colon (;).<br>e.g.: wowaka; Pinocchio-P<hr>This will allow the tool to generate a category for each listed producer.</span></span></td>
+    <td class="div"><textarea id="producers" cols="88" rows="5" form="albumpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td colspan="3" class=caption style="font-size: 18pt; text-align: center;" id="tracklisttablecaption">Tracklist  <span class="info">&#x1F6C8;<span class="tooltip" style="text-align: left;">Add tracklist information here.<br>Track names should follow the naming convention of song articles (e.g. "すろぉもぉしょん (Slow Motion)").<br>If a song page exists on Vocaloid Lyrics wiki then the URL of that page should be inputted into the table.<br>Markup to featured producers and singers should only be added for the first mention of that artist/synth.<br><br>Add, delete, or drag rows as you please<hr>(required)</span></span></td>
+  </tr>
+  <tr>
+    <td colspan="3">
+      <table width=100%>
+        <tr>
+        <td width="50px"> </td>
+        <td><div id=tracklist tabindex="1" class="jexcel_container">    </div></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class="caption center">VocaDB Album Page ID:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">The numerical ID of the album page entry on VocaDB. For example, the Page ID for the album "Comic and Cosmic" (<a href="https://vocadb.net/Al/21149" target="_blank" rel="noopener noreferrer" style="color: azure">https://vocadb.net/Al/21149</a>) is 21149.<hr>(required)</span></span></td>
+    <td class=div>
+      <div class="ui input"><input type="text" placeholder="VocaDB album page ID" id="vocadbid" size="82" form="albumpageform" /></div>
+    </td>
+  </tr>
+  <tr>
+    <td class="caption center">Vocaloid Wiki Page:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">The Vocaloid Wiki page for the album, if it exists. Only the page name should be given.</span></span></td>
+    <td class="div">
+      <div class="ui input"><input type="text" placeholder="Vocaloid Wiki Page Name" id="vocaloidwikipage" size="82" form="albumpageform" /></div>
+    </td>
+  </tr>
+  <tr>
+    <td class="caption" class="div">External links:</td>
+    <td class="tooltip"><span class="info">&#x1F6C8;<span class="tooltip">Links to related web pages, one per line, with description, e.g.:<br>https://piapro.jp/t/uvwx Off-vocal<br>Recognizes many commonly used sites such as Hatsune Miku Wiki and VocaDB<br><br>Add, delete, or drag rows as you please</span></span></td>
+    <td>
+      <div id="extlinks" tabindex="1" class="jexcel_container">    </div>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class="caption">Categories:</td>
+    <td class="tooltip"><span class="info">&#x1F6C8;<span class="tooltip">Category names, one per line, e.g.:<br>Albums featuring Hatsune Miku<hr>Click the Autoload button to have the site generate commonly used tags</span></span></td>
+    <td class="div" rowspan="2">
+      <textarea id="categories" cols="88" rows="5" form="albumpageform"></textarea>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top; text-align: right;" colspan="2"><button form="albumpageform" class="ui button" onclick="autoloadCategories();">Autoload</button></td>
+  </tr>
+  <tr>
+    <td colspan="3"><br><hr><br></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td>
+      <table width=100%><tr>
+        <td class=div>
+          <button form="albumpageform" class="ui button" onclick="if (confirm('This will clear all inputted data. Continue?')) {more_resets();}">Reset</button>
+        </td>
+        <td class=div width=18%></td>
+        <td class=div width=60%>
+          <button form="albumpageform" class="ui primary button" style="width:300px" onclick="generateAlbumPage();">Generate</button>
+          <div class="ui checkbox">
+            <input type="checkbox" id="ignoreerrors" form="albumpageform">
+            <label>ignore errors</label>
+          </div>
+        </td>
+      </tr></table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><br><hr><br></td>
+  </tr>
+  <tr>
+    <td></td><td></td>
+    <td>
+      <div class="ui message" id="error" style="width:650pt;"></div>
+    </td>
+  </tr>
+</table>
+
+<table width=100%>
+  <tr>
+    <td colspan="2" class="caption" style="font-size: 20pt; text-align: center;">Results <button class="ui button" onclick="copyOutputToClipboard();">Copy Output</button></td>
+  </tr>
+  <tr>
+    <td colspan="2" id="pagetitle" class=caption style="text-align: center;"></td>
+  </tr>
+  <tr>
+    <td width=17%> </td>
+    <td><textarea readonly="readonly" id="output" cols="120" rows="40"></textarea></td>
+  </tr>
+</table>
+<div class="ui divider"></div>
+<table width=100%>
+  <tr>
+    <td width=50% class="footer"><p>Author: <a href="https://coolmikehatsune22.wordpress.com/about-me/" target="_blank" rel="noopener noreferrer">CoolMikeHatsune22</a>.<br>Powered by <a href="https://semantic-ui.com/" target="_blank" rel="noopener noreferrer">Semantic UI</a> and <a href="https://github.com/jspreadsheet/ce" target="_blank" rel="noopener noreferrer">JSpreadsheet</a><br><br>Github Repository: <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator" target="_blank" rel="noopener noreferrer">VLW Song Page Generator</a><br>Re-use and modification permitted under the CC license.</p><p>v2.1.0 - Update code: 000000</p></td>
+    <td width=50% class="footer" style="text-align: right;"><p>Navigation:<br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/main.html" target="_blank" rel="noopener noreferrer">Song Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/album.html" target="_blank" rel="noopener noreferrer">Album Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/lyricseditor.html" target="_blank" rel="noopener noreferrer">Advanced Lyrics Editing</a></ul></p></td>
+  </tr>
+</table>
+
+<script>
+
+populate_vocalsynthenginelist();
+
+//Event handling for tracklist input table: automatically detect the page name in the given VLW page URL
+let trackListChanged = function(instance, cell, col, row, value) {
+  try {
+    if (col==3 && value.trim() !== "") {
+      let siteurl = value;
+      let pagename = detagHref(siteurl);
+      let tryRegex = [];
+      tryRegex = pagename.match(/(?<=^https?:\/\/vocaloidlyrics\.fandom\.com\/wiki\/).*/);
+      if (Array.isArray(tryRegex) && tryRegex.length) {
+        pagename = tryRegex[0];
+        tryRegex = pagename.match(/^.*(?=\/)/);
+        if (Array.isArray(tryRegex) && tryRegex.length) {pagename = tryRegex[0];}
+        pagename = pagename.replace(/_/g, " ");
+        pagename = decodeURI(pagename);
+        trackListTable.setValueFromCoords(col-1, row, pagename);
+      }
+
+      //console.log(siteurl, sitename);
+      if (siteurl.match(/^https?:\/\/.*/)) {
+        trackListTable.setValueFromCoords(col, row, "<a href=\"" + siteurl + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + siteurl + "</a>");
+      }
+      //console.log("Changed");
+    }
+  }
+  catch (error) {}
+};
+
+//Initialize tracklist input table
+trackListTable = jspreadsheet(document.getElementById("tracklist"), {
+  data: [...Array(10)].map(e => Array(5).fill("")),
+  columns: [
+    { type: "numeric", title: "Disk No.", width: 80 },
+    { type: "numeric", title: "Track No.", width: 80 },
+    { type: "text", title: "Track name", width: 300 },
+    { type: "html", title: "VLW Page URL", width: 300 },
+    { type: "text", title: "Featured Producers & Singers", width: 300 }
+  ],
+  colAlignments: ["center", "center", "left", "left", "left"],
+  columnSorting: true,
+  rowDrag: true,
+  allowInsertRow: true,
+  allowManualInsertRow: true,
+  allowInsertColumn: false,
+  allowManualInsertColumn: false,
+  allowDeleteRow: true,
+  allowDeleteColumn: false,
+  allowRenameColumn: false,
+  minDimensions: [5,1],
+  wordWrap: true,
+  onchange: trackListChanged
+});
+
+//Event handling for external links input table: automatically detect the website in the URL
+let extLinkChanged = function(instance, cell, col, row, value) {
+  try {
+    if (col==0 && value.trim() !== "") {
+      let siteurl = value;
+      let sitename = identify_website(siteurl);
+      if (siteurl.match(/^https?:\/\/.*/)) {
+        extLinksTable.setValueFromCoords(col, row, "<a href=\"" + siteurl + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + siteurl + "</a>");
+      }
+      extLinksTable.setValueFromCoords(col+1, row, sitename);
+    }
+  }
+  catch (error) {}
+};
+
+//Initialize external links input table
+extLinksTable = jspreadsheet(document.getElementById("extlinks"), {
+  data: [...Array(5)].map(e => ["","",false]),
+  columns: [
+    { type: "html", title: "URL", width: 500 },
+    { type: "text", title: "Description", width: 250 },
+    { type: "checkbox", title: "Official", width: 80 }
+  ],
+  colAlignments: ["left", "left", "center"],
+  columnSorting: true,
+  rowDrag: true,
+  allowInsertRow: true,
+  allowManualInsertRow: true,
+  allowInsertColumn: false,
+  allowManualInsertColumn: false,
+  allowDeleteRow: true,
+  allowDeleteColumn: false,
+  allowRenameColumn: false,
+  //minDimensions: [3,5],
+  onchange: extLinkChanged
+});
+
+$("#vocadbloader").hide();
+$("#error").hide();
+$("#thumbrow").hide();
+
+</script>
+</body>
+</html>

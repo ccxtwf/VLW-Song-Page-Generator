@@ -1,89 +1,11 @@
 //This script file also refers to the variable lyricsTable in the main HTML doc.
 
-const colournames =
-  [
-  "black", "white", "aliceblue", "antiquewhite", "aqua", "aquamarine",
-  "azure", "beige", "bisque", "blanchedalmond", "blue", "blueviolet",
-  "brown", "burlywood", "cadetblue", "chartreuse", "chocolate", "coral",
-  "cornflowerblue", "cornsilk", "crimson", "cyan", "darkblue", "darkcyan",
-  "darkgoldenrod", "darkgray", "darkgreen", "darkgrey", "darkkhaki",
-  "darkmagenta", "darkolivegreen", "darkorange", "darkorchid", "darkred",
-  "darksalmon", "darkseagreen", "darkslateblue", "darkslategray",
-  "darkslategrey", "darkturquoise", "darkviolet", "deeppink", "deepskyblue",
-  "dimgray", "dimgrey", "dodgerblue", "firebrick", "floralwhite",
-  "forestgreen", "fuchsia", "gainsboro", "ghostwhite", "gold", "goldenrod",
-  "gray", "green", "greenyellow", "grey", "honeydew", "hotpink", "indianred",
-  "indigo", "ivory", "khaki", "lavender", "lavenderblush", "lawngreen",
-  "lemonchiffon", "lightblue", "lightcoral", "lightcyan",
-  "lightgoldenrodyellow", "lightgray", "lightgreen", "lightgrey",
-  "lightpink", "lightsalmon", "lightseagreen", "lightskyblue",
-  "lightslategray", "lightslategrey", "lightsteelblue", "lightyellow",
-  "lime", "limegreen", "linen", "magenta", "maroon", "mediumaquamarine",
-  "mediumblue", "mediumorchid", "mediumpurple", "mediumseagreen",
-  "mediumslateblue", "mediumspringgreen", "mediumturquoise",
-  "mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin",
-  "navajowhite", "navy", "oldlace", "olive", "olivedrab", "orange",
-  "orangered", "orchid", "palegoldenrod", "palegreen", "paleturquoise",
-  "palevioletred", "papayawhip", "peachpuff", "peru", "pink", "plum",
-  "powderblue", "purple", "rebeccapurple", "red", "rosybrown", "royalblue",
-  "saddlebrown", "salmon", "sandybrown", "seagreen", "seashell", "sienna",
-  "silver", "skyblue", "slateblue", "slategray", "slategrey", "snow",
-  "springgreen", "steelblue", "tan", "teal", "thistle", "tomato",
-  "turquoise", "violet", "wheat", "whitesmoke", "yellow", "yellowgreen"
-  ];
-
-const translatorlicenses =
-  [
-  {id:["aWhimsicalStar☆"],
-    license:"https://awhimsicalstar.dreamwidth.org"},
-  {id:["Azayaka"], 
-    license:"https://echoesofblue.tumblr.com/terms|her website"},
-  {id:["a bunny's translations"],
-    license:"http://bunnyword.tumblr.com/about|her tumblr"},
-  {id:["BambooXZX"],
-    license:"https://bambooxzx.wordpress.com/about/"},
-  {id:["Bluepenguin", "EJ Translations"],
-    license:"https://ejtranslations.wordpress.com/"},
-  {id:["CoolMikeHatsune22"],
-    license:"https://coolmikehatsune22.wordpress.com/about-me/"},
-  {id:["Kazabana"],
-    license:"https://kazabana.wordpress.com/about/"},
-  {id:["ElectricRaichu", "Len's Lyrics", "Raichu"],
-    license:"http://lenslyrics.ml/licence.html|his website"},
-  {id:["Magenetra", "Kagamine_Neko", "aquariantwin", "Mellifera_x3"],
-    license:"https://magenetratranslations.tumblr.com/Terms|their tumblr"},
-  {id:["Matchakame"],
-    license:"http://matchakame.tumblr.com/about|her tumblr"},
-  {id:["PeanutSub"],
-    license:"https://peanut-sub.tumblr.com/bya|their blog"},
-  {id:["poppochan28"],
-    license:"https://poppochan.dreamwidth.org/438.html|their blog"},
-  {id:["Pricecheck Translations"],
-    license:"http://pricechecktranslations.tumblr.com/about|her tumblr"},
-  {id:["Releska"],
-    license:"https://releska.com/|his blog"},
-  {id:["TsunaguSubs"],
-    license:"https://tsunagusubs.github.io/#faq|her website"},
-  {id:["shiyuki332", "Shiyuki", "Shiyuki332"],
-    license:"https://twitter.com/shiyuki332/status/1256815663663837184|their twitter"},
-  {id:["Yumemiru Sekai"],
-    license:"https://yumemirusekai.wordpress.com/faq/|their blog"}
-  ];
-
 /*
  * Declarations of arrays to contain data from custom JSpreadsheet tables
  */
 let arrDataLyrics = [];
 
 let strOrigHeader = "";
-
-/*
- * Obtain contents of a text field as input by the user. Trimmed.
- */
-function read_text(fieldname)
-{
- return document.getElementById(fieldname).value.trim();
-}
 
 /*
  * Event handler: Detect tables in the wiki page source code.
@@ -445,28 +367,6 @@ function actionable_shiftRomajiToModernHepburn() {
     };
   };
   lyricsTable.setColumnData(2, arrRomLyrics);
-}
-
-/*
- * Return a license string if the given translator is recognized as
- * having specific license conditions. Otherwise return an empty string.
- */
-function get_translator_license(translator)
-{
- for (let i = 0; i < translatorlicenses.length; ++i)
- {
-  if (translatorlicenses[i].id.indexOf(translator) >= 0)
-   return "{{TranslatorLicense|" + translatorlicenses[i].id[0] +
-    "|" + translatorlicenses[i].license + "}}\n";
- }
- return "";
-}
-
-/*
- * Return whether or not a string is a valid CSS colour.
- */
-function validate_colour(colour) {
- return colour == "" || colour.match("^#[0-9a-f]{6}$") || colournames.indexOf(colour) >= 0;
 }
 
 /*

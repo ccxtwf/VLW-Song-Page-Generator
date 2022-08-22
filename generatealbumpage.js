@@ -1,62 +1,4 @@
-
-//This script file also refers to the variables listPVService, listRecognizedLinks, extLinksTable and trackListTable in the albumgenerator HTML doc.
-
-/*
- * Names of commonly used sites based on their URLs.
- * ### fandom sites should use w:c: links in generated code
- */
-const listPVService =
-    [
-    {re:"^https?://youtu\\.be/",                   site:"YouTube"},
-    {re:"^https?://(|www\\.)youtube.com/watch?.*", site:"YouTube"},
-    {re:"^https?://www\\.nicovideo\\.jp/.*",       site:"Niconico"},
-    {re:"^https?://piapro\\.jp/.*",                site:"piapro"},
-    {re:"^https?://soundcloud\\.com/.*",           site:"SoundCloud"},
-    {re:"^https?://.*bandcamp\\.com/.*",           site:"Bandcamp"},
-    {re:"^https?://vimeo\\.com/.*",                site:"Vimeo"},
-    {re:"^https?://www\\.bilibili\\.com/.*",       site:"bilibili"},
-    {re:"^https?://music\\.163\\.com/\\.*",        site:"Netease Music"},
-    ];
-
-const listRecognizedLinks = 
-listPVService.concat(
-    [
-    {re:"^https?://www\\.animelyrics\\.com/.*",    site:"Anime Lyrics"},
-    {re:"^https?://vocadb\\.net/.*",               site:"VocaDB"},
-    {re:"^https?://vocaloidlyrics\\.fandom\\.com/*", site:"Vocaloid Lyrics Wiki"},
-    {re:"^https?://www5\\.atwiki\\.jp/hmiku/.*",   site:"Hatsune Miku Wiki"},
-    {re:"^https?://w\\.atwiki\\.jp/hmiku/.*",      site:"Hatsune Miku Wiki"},
-    {re:"^https?://vocaloid\\.fandom\\.com/.*",    site:"Vocaloid Wiki"},
-    {re:"^https?://dic\\.nicovideo\\.jp/.*",       site:"Niconico Pedia"},
-    {re:"^https?://ch\\.nicovideo\\.jp/.*",        site:"Blomaga"},
-    {re:"^https?://commons\\.nicovideo\\.jp/.*",   site:"Niconi Commons"},
-    {re:"^https?://www\\.pixiv\\.net/.*",          site:"pixiv"},
-    {re:"^https?://utaitedb\\.net/.*",             site:"UtaiteDB"},
-    {re:"^https?://project-diva\\.fandom\\.com/.*", site:"Project DIVA Wiki"},
-    {re:"^https?://projectdiva\\.wiki/.*",         site:"ProjectDIVA Wiki"},
-    {re:"^https?://theevilliouschronicles\\.fandom\\.com/.*", site:"The Evillious Chronicles Wiki"},
-    {re:"^https?://w\\.atwiki\\.jp/vocaloidenglishlyric/.*", site:"Vocaloid English & Romaji Lyrics @wiki"},
-    {re:"^https?://ja\\.chordwiki\\.org/.*",       site:"ChordWiki"},
-    {re:"^https?://dic\\.pixiv\\.net/.*",          site:"Pixiv Encyclopedia"},
-    {re:"^https?://en-dic\\.pixiv\\.net/.*",       site:"Pixiv Encyclopedia (English)"},
-    {re:"^https?://j-lyric\\.net/.*",              site:"J-Lyrics.net"},
-    {re:"^https?://karent\\.jp/.*",                site:"KARENT"},
-    {re:"^https?://en\\.wikipedia\\.org/.*",       site:"Wikipedia"},
-    {re:"^https?://ja\\.wikipedia\\.org/.*",       site:"Wikipedia (Japanese)"},
-    {re:"^https?://twitter\\.com/.*",              site:"Twitter"},
-    {re:"^https?://utaten\\.com/.*",               site:"UtaTen"},
-    {re:"^https?://www\\.kkbox\\.com/.*",          site:"KKBOX"},
-    {re:"^https?://www\\.lyrical-nonsense\\.com/.*", site:"Lyrical Nonsense"},
-    {re:"^https?://www\\.kget\\.jp/.*",            site:"KashiGET"},
-    {re:"^https?://www\\.dropbox\\.com/.*",        site:"Dropbox"},
-    {re:"^https?://drive\\.google\\.com/.*",       site:"Google Drive"},
-    {re:"^https?://docs\\.google\\.com/.*",        site:"Google Docs"},
-    {re:"^https?://[^.]+\\.deviantart\\.com/.*",   site:"DeviantArt"},
-    {re:"^https?://fav\\.me/.*",                   site:"DeviantArt"},
-    {re:"^https?://lenslyrics\\.ml/.*",            site:"Len's Lyrics"},
-    {re:"^https?://pan\\.baidu\\.com/\\.*",        site:"Baidu"},
-    {re:"^https?://5sing\\.kugou\\.com/.*",        site:"5Sing"},
-    ]);
+//This script file also refers to the variables extLinksTable and trackListTable in the albumgenerator HTML doc.
 
 const albumPageTemplate = `{{Album Infobox
 |title = $_ROMANIZED_TITLE
@@ -83,6 +25,7 @@ fetch("listofvocaloid.json")
         listofvocaloid = data;
 });
 
+//Import data from VocaDB
 async function importFromVocaDB() {
 
     //Local declarations
@@ -94,6 +37,7 @@ async function importFromVocaDB() {
     let singers = "";
     let producers = "";
     let label = "";
+    let description = "";
     let vocaloidwikiurl = "";
     let vocaloidwikipagename = "";
     let trackList = [];
@@ -202,12 +146,23 @@ async function importFromVocaDB() {
             extLinks.push([weblink_url, weblink_site, bLinkIsOfficial]);
         });
 
+        if (setOfFeaturedProducers.size < 4) {
+            setOfFeaturedProducers.forEach( producer => {
+            description = addItemToListString(producer, description, ", ");
+            });
+            description = "an album by " + description;
+        }
+        else {
+            description = "an album featuring several producers";
+        }
+
         //Write data to online form
         $("#originaltitle").val(originalTitle);
         $("#romajititle").val(transliteratedTitle);
         $("#label").val(label);
         $("#singer").val(singers);
         $("#producers").val(producers);
+        $("#description").val(description);
         $("#vocadbid").val(vocadbid);
         $("#vocaloidwikipage").val(vocaloidwikipagename);
     
@@ -224,6 +179,11 @@ async function importFromVocaDB() {
                 $("#featuredsynth").dropdown("set selected", "Other Voice Synthesizer");
             }
         });
+
+        //Load image
+        let coverpictureurl = "https://vocadb.net/Album/CoverPicture/" + vocadbid;
+        $("#thumbrowinner").append("<img src=\"" + coverpictureurl + "\" width=\"400\" alt=\"Image not found\">");
+        $("#thumbrow").show();
 
         //Give alert to end user
         window.alert("Loaded successfully");
@@ -277,7 +237,7 @@ function autoloadCategories() {
  */
 function check_form_for_errors() {
 
-    console.log("checking errors");
+    //console.log("checking errors");
 
     error_resets();
     let arrStrWarning = [];
@@ -336,6 +296,16 @@ function check_form_for_errors() {
             arrStrWarning.push("You must add featured producers & singers to all tracks, or specify that the song is an instrumental if there are no singers.");
             $("#tracklisttablecaption").toggleClass("error",true);
         }
+        if (arrTrackList.some(function (rowTrack) {
+            let url = rowTrack[3].trim();
+            if (url == "") {return false};
+            let tryRegex = url.match(/(?<=^https?:\/\/vocaloidlyrics\.fandom\.com\/wiki\/).*/);
+            if (!Array.isArray(tryRegex) || tryRegex.length == 0) {return true;}
+            })) 
+        {
+            arrStrWarning.push("You can only add a link to a song page on Vocaloid Lyrics Wiki. Please re-check the page URLs.");
+            $("#tracklisttablecaption").toggleClass("error",true);
+        }
     }
 
     //Forgot to autoload categories?
@@ -355,8 +325,8 @@ function check_form_for_errors() {
         if (bRecommendToReloadCategories) {
         strWarning += "<p>Please click the \"Autoload Categories\" button again before you generate the song page.</p>"
         }
-        $("#warnings").html(strWarning);
-        $("#warnings").show();
+        $("#error").html(strWarning);
+        $("#error").show();
         return true;
     }
 
@@ -532,30 +502,4 @@ function getVocaDBID(siteurl) {
     let tryregex = siteurl.match(/(?<=^https?:\/\/vocadb\.net\/Al\/)\d*/gm);
     if (Array.isArray(tryregex)) {siteurl = tryregex[0];};
     return siteurl;
-}
-
-function addItemToListString(item, liststr, delim) {
-    if (liststr == "") {liststr = item;}
-    else if (item !== "") {liststr += delim + item;}
-    return liststr;
-}
-
-function identify_website(linkurl, listwebsite)
-{
- for (var i = 0; i < listwebsite.length; ++i)
- {
-  if (linkurl.match(listwebsite[i].re))
-   return listwebsite[i].site;
- }
- return "";
-}
-
-/*
- * Remove <a href> tag and get displayed URL/text
- */
-function detagHref(strHref) {
-    let linkurl = strHref;
-    let tryRegex = strHref.match(/(?<=\<a href=\".*\".*\>).*(?=\<\/a\>)/gm);
-    if (Array.isArray(tryRegex)) {linkurl = tryRegex[0];};
-    return linkurl;
 }

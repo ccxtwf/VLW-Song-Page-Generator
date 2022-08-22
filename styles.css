@@ -1,0 +1,96 @@
+/* table, th, td {border: 1px solid;} */
+body {
+color: navy;
+}
+td {
+font-size: 10pt;
+}
+td.caption {
+text-align: right;
+vertical-align: top;
+font-size: 14pt;
+}
+td.caption.center {
+vertical-align: middle;
+}
+td.div {
+text-align: left;
+vertical-align: center;
+font-size: 12pt;
+}
+td.tooltip { 
+text-align: left;
+vertical-align: top;
+font-size: 12pt;
+width: 2%;
+}
+td.tooltip.center {
+vertical-align: middle;
+}
+span.tooltip {
+visibility: hidden;
+background-color: navy;
+color: white;
+padding: 5px;
+border-radius: 4px;
+font-size: 10pt;
+position: absolute;
+z-index: 10;
+}
+span.tooltip table {
+color: white;
+font-size: 10pt;
+z-index: 10;
+}
+span.info {
+font-size: 14pt;
+color: navy;
+}
+span.info:hover span.tooltip {
+visibility: visible;
+}
+textarea {
+border-color: grey;
+color: navy;
+font-size: 11pt;
+}
+input[type=date] {
+color:navy;
+font-size: 10pt;
+}
+.ui.checkbox input[type=checkbox], .ui.checkbox input[type=radio] {
+opacity: 1!important;
+}
+.ui.radio.checkbox label, .ui.checkbox label, .ui.multiple.search.dropdown>.text  {
+color: navy;
+}
+.ui.dropdown {
+outline: 1px solid grey;
+}
+.ui.input>input {
+color:navy;
+border-color: grey;
+font-size: 11pt;
+}
+.ui.label {
+background-color:navy;
+color:aliceblue;
+}
+.ui.dropdown.error, .ui.input.error, input.error, textarea.error {
+background-color:#fff6f6;
+border-color:darkred;
+color:red;
+outline: 2px inset darkred;
+box-shadow:none;
+}
+td.error {
+color:red;
+}
+.ui.message {
+background-color:#fff6f6;
+color:red;
+}
+.footer {
+font-size: 8pt; 
+vertical-align: top;
+}
