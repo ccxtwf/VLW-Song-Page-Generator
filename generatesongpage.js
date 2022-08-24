@@ -109,7 +109,7 @@ function generateSongPage() {
   strSongPage += "\n\n" + generateLyrics();
   strSongPage += "\n\n" + generateExternalLinks();
   strSongPage += "\n\n\n";
-  if (romTitle !== "") {strSongPage += "{{DEFAULTSORT:" + romTitle + "}}\n"};
+  if (romTitle !== "") {strSongPage += "{{DEFAULTSORT:" + detonePinyin(romTitle, false) + "}}\n"};
   strSongPage += generateListOfCategories();
   
   $("#output").html(strSongPage);
@@ -362,7 +362,7 @@ function generateLyrics() {
           setLyricsColours.add(rowStyling);
           strLyricsTable += "|" + rowOrigLyrics + "\n";
           if (bLyricsAreRomanized) {strLyricsTable += "|" + rowRomLyrics + "\n";};
-          if (bTranslationExists) {strLyricsTable += "|" + rowEngLyrics + "\n";};
+          if (bTranslationExists || !bLyricsAreRomanized) {strLyricsTable += "|" + rowEngLyrics + "\n";};
         }
       });
     }

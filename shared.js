@@ -379,3 +379,26 @@ function addItemToListString(item, liststr, delim) {
     else if (item !== "") {liststr += delim + item;}
     return liststr;
 }
+
+function detonePinyin(romLyrics, bShowUmlaut = false) {
+    romLyrics = romLyrics.trim();
+    romLyrics = romLyrics.replace(/[āáǎà]/gm, "a");
+    romLyrics = romLyrics.replace(/[ĀÁǍÀ]/gm, "A");
+    romLyrics = romLyrics.replace(/[īíǐì]/gm, "i");
+    romLyrics = romLyrics.replace(/[ĪÍǏÌ]/gm, "I");
+    romLyrics = romLyrics.replace(/[ūúǔù]/gm, "u");
+    romLyrics = romLyrics.replace(/[ŪÚǓÙ]/gm, "U");
+    romLyrics = romLyrics.replace(/[ēéěè]/gm, "e");
+    romLyrics = romLyrics.replace(/[ĒÉĚÈ]/gm, "E");
+    romLyrics = romLyrics.replace(/[ōóǒò]/gm, "o");
+    romLyrics = romLyrics.replace(/[ŌÓǑÒ]/gm, "O");
+    if (bShowUmlaut) {
+        romLyrics = romLyrics.replace(/[ǖǘǚǜ]/gm, "ü");
+        romLyrics = romLyrics.replace(/[ǕǗǙǛ]/gm, "Ü");
+    }
+    else {
+        romLyrics = romLyrics.replace(/[ǖǘǚǜ]/gm, "v");
+        romLyrics = romLyrics.replace(/[ǕǗǙǛ]/gm, "V");
+    }
+    return romLyrics;
+}
