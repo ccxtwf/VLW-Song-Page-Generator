@@ -314,7 +314,9 @@ function generateLyrics() {
       strLyricsTable += "|'''''Romanized'''''\n"
     }
     else {
-      strLyricsTable += "|'''''" + configLanguages.arrLyricsOrigLang.join("/") + "'''''\n";
+      if (bLyricsAreRomanized || bTranslationExists) {
+        strLyricsTable += "|'''''" + configLanguages.arrLyricsOrigLang.join("/") + "'''''\n";
+      }
       //Add romanized lyrics column
       if (bLyricsAreRomanized) {
         strLyricsTable += "|'''''" + configLanguages.arrLyricsTransliteration.join("/") + "'''''\n"
