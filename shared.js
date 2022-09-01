@@ -57,6 +57,7 @@ const colournames =
     "gray":"#808080",
     "green":"#008000",
     "greenyellow":"#adff2f",
+    "grey":"#808080",
     "honeydew":"#f0fff0",
     "hotpink":"#ff69b4",
     "indianred ":"#cd5c5c",

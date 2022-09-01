@@ -430,7 +430,13 @@ function generateAlbumPage() {
     };
 
     // Set defaultsort template
-    if (romanizedtitle !== originaltitle && originaltitle !== "") {sorttemplate = "{{DEFAULTSORT:" + romanizedtitle + "}}"};
+    if (romanizedtitle !== originaltitle && originaltitle !== "") {
+        sorttemplate = "{{sort"
+        if (romanizedtitle.replace(/[ -~]/g, "") !== "") {
+            sorttemplate += "|" + detonePinyin(romanizedtitle, false) + "}}"
+        }
+        else {sorttemplate += "}}"}
+    };
 
     //Write data onto the album page template
     let albumpage = albumPageTemplate;

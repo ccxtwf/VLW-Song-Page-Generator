@@ -101,15 +101,25 @@ function generateSongPage() {
   let romTitle = read_text("romajititle");
   if (romTitle !== "") {pageTitle += " (" + romTitle + ")"};
   $("#pagetitle").html(pageTitle);
+  let sortTemplate = "";
+  if (romTitle !== "") {
+    sortTemplate = "{{sort"
+    if (romTitle.replace(/[ -~]/g, "") !== "") {
+      sortTemplate += "|" + detonePinyin(romTitle, false) + "}}"
+    }
+    else {sortTemplate += "}}"}
+  };
+  
 
   let strSongPage = ""
   if (document.getElementById("unavailable").checked) {strSongPage += "{{Unavailable}}"};
   strSongPage += generateContentWarnings();
+  strSongPage += sortTemplate
   strSongPage += generateInfoBox();
   strSongPage += "\n\n" + generateLyrics();
   strSongPage += "\n\n" + generateExternalLinks();
   strSongPage += "\n\n\n";
-  if (romTitle !== "") {strSongPage += "{{DEFAULTSORT:" + detonePinyin(romTitle, false) + "}}\n"};
+  //if (romTitle !== "") {strSongPage += "{{DEFAULTSORT:" + detonePinyin(romTitle, false) + "}}\n"};
   strSongPage += generateListOfCategories();
   
   $("#output").html(strSongPage);
