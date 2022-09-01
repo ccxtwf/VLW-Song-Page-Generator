@@ -729,7 +729,7 @@ function check_form_for_errors() {
 
   //No producers in markup?
   let tryRegex = strProducers.match(/\[\[[^\[\]:]*\]\]\s\([^\(\)]*\)/gm);
-  if (!Array.isArray(tryRegex) || tryRegex.length) {
+  if (!Array.isArray(tryRegex) || tryRegex.length == 0) {
     arrStrWarning.push("If the producer already has a page on Vocaloid Lyrics wiki, then you should add the name of that producer in markup, e.g. \"[[wowaka]] (music)\" or \"[[nagimiso]] (illustration)\". Clicking the \"Autoload Categories\" button again in this case will automatically generate the category for that producer.");
     //bRecommendToReloadCategories = true;
   }
