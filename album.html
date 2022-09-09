@@ -183,10 +183,19 @@ function copyOutputToClipboard() {
   </tr>
   <tr>
     <td class="caption center">Infobox bg/fg colour:</td>
-    <td class="tooltip center"><span class=info>&#x1F6C8;<span class="tooltip">Infobox colour<br>hexadecimal colour, e.g., #ff0000<br><em>or</em><br>colour name, e.g., red</span></span></td>
-    <td class=div width=33%>
-      <div class="ui input"><input type="text" value="lightsteelblue" id="bgcolour" size="14" onchange="color_changed('bgcolour',false)" form="albumpageform" /></div>
-      <input type="color" id="bgcolourpicker" value="#b0c4de" style="width:45px" onchange="color_changed('bgcolour',true)" form="albumpageform"/> </td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Infobox background (left) and foreground (right) colour<br>hexadecimal colour, e.g., #ff0000<br><em>or</em><br>colour name, e.g., red<hr>(required)</span></span></td>
+    <td>
+      <table width=800pt><tr>
+        <td class="div" width=50%>
+          <div class="ui input"><input type="text" id="bgcolour" size="15" value="black" onchange="color_changed('bgcolour',false)"form="albumpageform"/></div>
+          <input type="color" id="bgcolourpicker" value="#000000" style="width:45px" onchange="color_changed('bgcolour',true)" form="albumpageform"/>
+        </td>
+        <td class="div" width=50%>
+          <div class="ui input"><input type="text" id="fgcolour" size="15" value="white" onchange="color_changed('fgcolour',false)" form="albumpageform"/></div>
+          <input type="color" id="fgcolourpicker" value="#ffffff" style="width:45px" onchange="color_changed('fgcolour',true)" form="albumpageform"/>
+        </td>
+      </tr></table>
+    </td>
   </tr>
   <tr>
     <td class="caption center">Label:</td>
@@ -323,7 +332,7 @@ function copyOutputToClipboard() {
 <div class="ui divider"></div>
 <table width=100%>
   <tr>
-    <td width=50% class="footer"><p>Author: <a href="https://coolmikehatsune22.wordpress.com/about-me/" target="_blank" rel="noopener noreferrer">CoolMikeHatsune22</a>.<br>Powered by <a href="https://semantic-ui.com/" target="_blank" rel="noopener noreferrer">Semantic UI</a> and <a href="https://github.com/jspreadsheet/ce" target="_blank" rel="noopener noreferrer">JSpreadsheet</a><br><br>Github Repository: <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator" target="_blank" rel="noopener noreferrer">VLW Song Page Generator</a><br>Re-use and modification permitted under the CC license.</p><p>v2.1.1 - Update code: 000000</p></td>
+    <td width=50% class="footer"><p>Author: <a href="https://coolmikehatsune22.wordpress.com/about-me/" target="_blank" rel="noopener noreferrer">CoolMikeHatsune22</a>.<br>Powered by <a href="https://semantic-ui.com/" target="_blank" rel="noopener noreferrer">Semantic UI</a> and <a href="https://github.com/jspreadsheet/ce" target="_blank" rel="noopener noreferrer">JSpreadsheet</a><br><br>Github Repository: <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator" target="_blank" rel="noopener noreferrer">VLW Song Page Generator</a><br>Re-use and modification permitted under the CC license.</p><p>v2.1.2 - Update code: 000000</p></td>
     <td width=50% class="footer" style="text-align: right;"><p>Navigation:<br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/main.html" target="_blank" rel="noopener noreferrer">Song Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/album.html" target="_blank" rel="noopener noreferrer">Album Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/lyricseditor.html" target="_blank" rel="noopener noreferrer">Advanced Lyrics Editing</a></ul></p></td>
   </tr>
 </table>

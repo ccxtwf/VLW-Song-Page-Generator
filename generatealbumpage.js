@@ -9,7 +9,7 @@ const albumPageTemplate = `{{Album Infobox
 |vw = $_VOCALOID_WIKI_LINK
 
 |image = 
-|color = $_BGCOLOUR
+|color = $_BGCOLOUR; color:$_FGCOLOUR
 $_TRACKLIST
 }}
 
@@ -255,6 +255,10 @@ function check_form_for_errors() {
         arrStrWarning.push("There is an error with the background colour.");
         $("#bgcolour").parent().toggleClass("error",true);
     }
+    if (!validate_colour(read_text("fgcolour"))) {
+        arrStrWarning.push("There is an error with the foreground colour.");
+        $("#fgcolour").parent().toggleClass("error",true);
+    }
     
     //No description added
     if (read_text("description") == "") {
@@ -357,7 +361,8 @@ function generateAlbumPage() {
     let description = read_text("description");
     let vocadbid = read_text("vocadbid");
     let vocaloidwikipage = read_text("vocaloidwikipage");
-    let infoboxcolour = read_text("bgcolour");
+    let infoboxbgcolour = read_text("bgcolour");
+    let infoboxfgcolour = read_text("fgcolour");
     let sorttemplate = "";
 
     //Get page name
@@ -431,8 +436,8 @@ function generateAlbumPage() {
 
     // Set defaultsort template
     if (romanizedtitle !== originaltitle && originaltitle !== "") {
-        sorttemplate = "{{sort"
-        if (romanizedtitle.replace(/[ -~]/g, "") !== "") {
+        sorttemplate = "{{sort-album"
+        if (detonePinyin(romanizedtitle, false).replace(/[ -~]/g, "") !== "") {
             sorttemplate += "|" + detonePinyin(romanizedtitle, false) + "}}"
         }
         else {sorttemplate += "}}"}
@@ -446,7 +451,8 @@ function generateAlbumPage() {
     albumpage = albumpage.replace("$_DESCRIPTION", description);
     albumpage = albumpage.replace("$_VOCADB_ID", vocadbid);
     albumpage = albumpage.replace("$_VOCALOID_WIKI_LINK", vocaloidwikipage);
-    albumpage = albumpage.replace("$_BGCOLOUR", infoboxcolour);
+    albumpage = albumpage.replace("$_BGCOLOUR", infoboxbgcolour);
+    albumpage = albumpage.replace("$_FGCOLOUR", infoboxfgcolour);
     albumpage = albumpage.replace("$_CATEGORIES", strCategories);
     albumpage = albumpage.replace("$_EXTERNAL_LINKS", strExtLinks);
     albumpage = albumpage.replace("$_DEFAULTSORT", sorttemplate);

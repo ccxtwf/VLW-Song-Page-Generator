@@ -61,7 +61,9 @@ function determineLanguages() {
 
     let arrLyricsOrigLang = [];
     let arrLyricsTransliteration = [];
-    arrLyricsOrigLang = arrLanguages.map(lang => languages[lang].name);
+    arrLyricsOrigLang = arrLanguages.map(function (lang) {
+      if (languages[lang].name == "Mandarin") {return "Chinese"}
+      else {return languages[lang].name}});
     let arrTransliteratedLanguages = arrLanguages.filter(function (language) {return "transliteration" in languages[language];});
     arrLyricsTransliteration = arrTransliteratedLanguages.map(lang => languages[lang].transliteration);
 
@@ -104,7 +106,7 @@ function generateSongPage() {
   let sortTemplate = "";
   if (romTitle !== "") {
     sortTemplate = "{{sort"
-    if (romTitle.replace(/[ -~]/g, "") !== "") {
+    if (detonePinyin(romTitle, false).replace(/[ -~]/g, "") !== "") {
       sortTemplate += "|" + detonePinyin(romTitle, false) + "}}"
     }
     else {sortTemplate += "}}"}
@@ -119,7 +121,6 @@ function generateSongPage() {
   strSongPage += "\n\n" + generateLyrics();
   strSongPage += "\n\n" + generateExternalLinks();
   strSongPage += "\n\n\n";
-  //if (romTitle !== "") {strSongPage += "{{DEFAULTSORT:" + detonePinyin(romTitle, false) + "}}\n"};
   strSongPage += generateListOfCategories();
   
   $("#output").html(strSongPage);
@@ -442,8 +443,12 @@ function listLinksInWikitextFormat(arrLinks, bLinksAreOfficial) {
 
   if (!Array.isArray(arrLinks) || arrLinks.length == 0) {return strWikiExternalLinks;}
 
-  if (bLinksAreOfficial) {strWikiExternalLinks += "\n===Official===";}
-  else {strWikiExternalLinks += "\n===Unofficial===";};
+  if (bLinksAreOfficial) {
+    //strWikiExternalLinks += "\n===Official===";
+  }
+  else {
+    strWikiExternalLinks += "\n===Unofficial===";
+  };
 
   let url = "";
   let description = "";
@@ -792,6 +797,16 @@ function check_form_for_errors() {
     arrStrError.push("Did you forget to add categories?");
     $("#categories").toggleClass("error",true);
     bRecommendToReloadCategories = true;
+  }
+
+  //Forgot to add viewcount
+  let bForgotViewCount = arrDataPlayLinks.some(function (rowPlayLink) {
+    if (!rowPlayLink[2] && !rowPlayLink[4] && rowPlayLink[0] in pvserviceabbr) {
+      return rowPlayLink[5].trim() == "";
+    }
+  });
+  if (bForgotViewCount) {
+    arrStrWarning.push("Did you forget to add the viewcount for the video?");
   }
   
 
