@@ -62,7 +62,7 @@ async function importFromVocaDB() {
             window.alert("Unexpected error: Please recheck given URL");
             return;
         }
-        urlquery = "https://vocadb.net/api/albums/" + vocadbid + "?fields=Artists,Tracks,WebLinks&lang=English"
+        urlquery = "https://vocadb.net/api/albums/" + vocadbid + "?fields=MainPicture,PVs,Artists,Tracks,WebLinks&songfields=Artists&lang=English"
         try {
             vocadbjson = await getJSonData(urlquery);
         } catch (error) {
@@ -101,39 +101,84 @@ async function importFromVocaDB() {
                     label = addItemToListString(artist.name, label, ", ");
                     break;
 
+                //Only list major producers
                 case "Producer":
+                    if (artist.effectiveRoles !== "Illustrator" && !artist.isSupport) {setOfFeaturedProducers.add(artist.name);};
+                    break;
+
                 default:
-                    if (artist.effectiveRoles !== "Illustrator") {setOfFeaturedProducers.add(artist.name);};
                     break;
             }
         }); 
         setOfFeaturedSynths.forEach( synth => {singers = addItemToListString(synth, singers, "; ");});
         setOfFeaturedProducers.forEach( producer => {producers = addItemToListString(producer, producers, "; ");});
 
+        let checkofffeaturedsynth = new Set(setOfFeaturedSynths);
+
         //Obtain tracklist
         let tracks = vocadbjson.tracks;
         let diskno = 0;
         let trackno = 0;
         let trackName = "";
+        let trackArtists = [];
+        let trackProdCredits = "";
+        let trackVocCredits = "";
         let trackCredits = "";
+        let trackVocalist = "";
+        let artistname = "";
+        let redirect = "";
         let bAlbumContainsMoreThanOneProducer = setOfFeaturedProducers.size > 1;
         tracks.forEach( track => {
             diskno = track.discNumber;
             trackno = track.trackNumber;
             trackName = track.song.defaultName;
-            trackCredits = track.song.artistString;
-            if (!bAlbumContainsMoreThanOneProducer) {trackCredits = trackCredits.replace(/^.*\bfeat\b\.\s/, "")};
+            trackArtists = track.song.artists;
+            trackProdCredits = "";
+            trackVocCredits = "";
+            trackArtists.forEach( trackArtist => {
+                if (trackArtist.categories == "Vocalist") {
+                    try {
+                        trackVocalist = listofvocaloid[trackArtist.artist.id];
+                        artistname = trackVocalist.fullvoicebankname;
+                        redirect = trackVocalist.basevoicebankname;
+                        if (checkofffeaturedsynth.has(artistname)) {
+                            checkofffeaturedsynth.delete(artistname);
+                            if (artistname == redirect) {artistname = "[[" + artistname + "]]";}
+                            else {artistname = "[[" + artistname + "|" + redirect + "]]";};
+                        }
+                        else {artistname = redirect;};
+                    }
+                    catch (error) {artistname = trackArtist.name;};
+                    trackVocCredits = addItemToListString(artistname, trackVocCredits, ", ");
+                }
+                else if (bAlbumContainsMoreThanOneProducer) {
+                    trackProdCredits = track.song.artistString;
+                    trackProdCredits = trackProdCredits.replace(/^(.*) feat\. .*$/, "$1");
+                };
+                if (trackVocCredits == "") {trackCredits = "Instrumental"}
+                else if (trackProdCredits == "") {trackCredits = trackVocCredits}
+                else {trackCredits = trackProdCredits + " feat. " + trackVocCredits};
+            })
             trackList.push([diskno, trackno, trackName, "", trackCredits]);
         });
 
         //Obtain list of official & unofficial reference/web links
         let webLinks = vocadbjson.webLinks;
+        let pvLinks = vocadbjson.pvs;
         let weblink_site;
         let weblink_url;
         let bLinkIsOfficial = false;
         weblink_url = "https://vocadb.net/Al/" + vocadbid;
         weblink_url = "<a href=\"" + weblink_url + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + weblink_url + "</a>";
         extLinks[0] = [weblink_url, "VocaDB", false];
+        pvLinks.forEach(weblink => {
+            weblink_site = "Album crossfade - " + weblink.service;
+            weblink_url = "<a href=\"" + weblink.url + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + weblink.url + "</a>";
+            bLinkIsOfficial = weblink.pvType !== "Reprint";
+            if (bLinkIsOfficial) {
+                extLinks.push([weblink_url, weblink_site, bLinkIsOfficial]);
+            }
+        });
         webLinks.forEach(weblink => {
             weblink_site = identify_website(weblink.url, listRecognizedLinks);
             if (weblink_site == "Vocaloid Wiki") {
@@ -182,7 +227,7 @@ async function importFromVocaDB() {
         });
 
         //Load image
-        let coverpictureurl = "https://vocadb.net/Album/CoverPicture/" + vocadbid;
+        let coverpictureurl = vocadbjson.mainPicture.urlOriginal;
         $("#thumbrowinner").append("<img src=\"" + coverpictureurl + "\" width=\"400\" alt=\"Image not found\">");
         $("#thumbrow").show();
 
@@ -468,8 +513,10 @@ function listLinksInWikitextFormat(arrLinks, bLinksAreOfficial) {
   
     if (!Array.isArray(arrLinks) || arrLinks.length == 0) {return strWikiExternalLinks;}
   
-    if (bLinksAreOfficial) {strWikiExternalLinks += "\n===Official===";}
-    else {strWikiExternalLinks += "\n===Unofficial===";};
+    if (bLinksAreOfficial) {
+        //strWikiExternalLinks += "===Official===";
+    }
+    else {strWikiExternalLinks += "===Unofficial===";};
   
     let url = "";
     let description = "";
@@ -502,6 +549,7 @@ function listLinksInWikitextFormat(arrLinks, bLinksAreOfficial) {
       };
       strWikiExternalLinks = addItemToListString(strExtLink, strWikiExternalLinks, "\n");
     });
+    if (strWikiExternalLinks !== "") {strWikiExternalLinks = "\n" + strWikiExternalLinks};
   
     return strWikiExternalLinks;
   

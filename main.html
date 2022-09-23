@@ -552,11 +552,7 @@ function prepareImportVocaDB() {
   </tr>
 </table>
 <div class="ui divider"></div>
-<table width=100%>
-  <tr>
-    <td width=50% class="footer"><p>Author: <a href="https://coolmikehatsune22.wordpress.com/about-me/" target="_blank" rel="noopener noreferrer">CoolMikeHatsune22</a>, based on earlier work by <a href="https://vocaloidlyrics.fandom.com/wiki/User:ElectricRaichu" target="_blank" rel="noopener noreferrer">ElectricRaichu</a> and <a href="https://vocaloidlyrics.fandom.com/wiki/User:Nefere" target="_blank" rel="noopener noreferrer">Nefere</a>.<br>Powered by <a href="https://semantic-ui.com/" target="_blank" rel="noopener noreferrer">Semantic UI</a> and <a href="https://github.com/jspreadsheet/ce" target="_blank" rel="noopener noreferrer">JSpreadsheet</a><br><br>Github Repository: <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator" target="_blank" rel="noopener noreferrer">VLW Song Page Generator</a><br>Re-use and modification permitted under the CC license.</p><p>v2.1.2 - Update code: 000000</p></td>
-    <td width=50% class="footer" style="text-align: right;"><p>Navigation:<br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/main.html" target="_blank" rel="noopener noreferrer">Song Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/album.html" target="_blank" rel="noopener noreferrer">Album Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/lyricseditor.html" target="_blank" rel="noopener noreferrer">Advanced Lyrics Editing</a></ul></p></td>
-  </tr>
+<table width=100% id="footer">
 </table>
 
 <script>
@@ -567,6 +563,7 @@ function prepareImportVocaDB() {
 //populate_wikitemplate_list();
 populate_language_list();
 populate_vocalsynthenginelist();
+add_site_footer(true);
 
 //Initialize lyrics input table
 lyricsTable = jspreadsheet(document.getElementById("lyricstable"), {

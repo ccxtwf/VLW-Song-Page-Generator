@@ -120,7 +120,8 @@ function generateSongPage() {
   strSongPage += generateInfoBox();
   strSongPage += "\n\n" + generateLyrics();
   strSongPage += "\n\n" + generateExternalLinks();
-  strSongPage += "\n\n\n";
+  strSongPage += "\n";
+  strSongPage += "__NOTOC__\n";
   strSongPage += generateListOfCategories();
   
   $("#output").html(strSongPage);
@@ -447,7 +448,7 @@ function listLinksInWikitextFormat(arrLinks, bLinksAreOfficial) {
     //strWikiExternalLinks += "\n===Official===";
   }
   else {
-    strWikiExternalLinks += "\n===Unofficial===";
+    strWikiExternalLinks += "===Unofficial===";
   };
 
   let url = "";
@@ -481,6 +482,7 @@ function listLinksInWikitextFormat(arrLinks, bLinksAreOfficial) {
     };
     strWikiExternalLinks = addItemToListString(strExtLink, strWikiExternalLinks, "\n");
   });
+  if (strWikiExternalLinks !== "") {strWikiExternalLinks = "\n" + strWikiExternalLinks};
 
   return strWikiExternalLinks;
 
