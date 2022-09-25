@@ -1,0 +1,443 @@
+<html>
+  <!-- JQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+  <!-- 
+    References to Semantic UI
+    For documentation please refer to https://semantic-ui.com/
+  -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
+
+  <!-- 
+    References to JSpreadsheet CE v4 external library, for custom spreadsheet input tables 
+    For documentation please refer to https://bossanova.uk/jspreadsheet/v4/
+  -->
+  <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+  <script src="https://jsuites.net/v4/jsuites.js"></script>
+  <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+  <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css" />
+
+  <!-- Reference other scripts in the same project -->
+  <script src="shared.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="generateproducerpage.js"></script>
+  
+<head>
+<title>VLW Producer Page Generator</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script>
+  
+/*
+ * Global references to custom spreadsheet input tables
+ */
+let extLinksTable = jspreadsheet(document.getElementById("extlinks"));
+let songPageTable = jspreadsheet(document.getElementById("songpagelist"));
+let albumPageTable = jspreadsheet(document.getElementById("albumpagelist"));
+
+/*
+ * Clear the album page form and reset various elements in the HTML doc
+ */
+function more_resets()
+{
+  document.getElementById("producerpageform").reset();
+  error_resets();
+  //Clear custom spreadsheet tables
+  extLinksTable.setData([...Array(5)].map(e => ["","",false,false,false]));
+  songPageTable.setData([...Array(5)].map(e => ["",""]));
+  albumPageTable.setData([...Array(5)].map(e => ["",""]));
+  //Reset output
+  $("#output").html("");
+  $("#pagetitle").html("");
+  $("#thumbrowinner").html("");
+  $("#thumbrow").hide();
+}
+
+/*
+ * Clear errors and warnings.
+ */
+ function error_resets() {
+  let arrDomElements = [
+    $("#mainalias").parent(),
+    $("#producerroles"),
+    $("#description"),
+    $("#extlinks").parent(),
+    $("#songpagelist").parent()
+  ]
+
+  arrDomElements.forEach( domElement => {
+    domElement.toggleClass("error", false);
+  })
+
+  $("#error").html("");
+  $("#error").hide();
+}
+
+/*
+ * Prepare to import from VocaDB
+ */
+ function prepareImportVocaDB() {
+  $('#vocadbloader').addClass('active');
+  setTimeout(function(){
+    more_resets();
+    importFromVocaDB();
+    $('#vocadbloader').removeClass('active');
+  }, 200);
+}
+
+/*
+ * Copy the output to clipboard when button is pressed.
+ */
+function copyOutputToClipboard() {
+  document.getElementById("output").select();
+  document.execCommand("copy");
+}
+
+</script>
+<style>
+.pagelist {
+font-size: 10pt; 
+vertical-align: top;
+}
+table.error, tr.error, td.error {
+  background-color:#fff6f6;
+  border: 2px inset darkred;
+  border-style: groove;
+}
+</style>
+</head>
+<body>
+<h1>Producer page generator for <a href="https://vocaloidlyrics.fandom.com/wiki/Vocaloid_Lyrics_Wiki:Song_Article_Guideline" target="_blank" rel="noopener noreferrer">Vocaloid Lyrics Wiki</a></h1>
+<form onSubmit="return false;" id="producerpageform"></form>
+<table width=100%>
+  <tr>
+    <td class="caption center" width=15%>Pre-load from VocaDB page:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Input URL to VocaDB producer/artist page here.<br>e.g. <a href="https://vocadb.net/Ar/28" target="_blank" rel="noopener noreferrer" style="color: azure">https://vocadb.net/Ar/28</a> Pinocchio-P</span></span></td>
+    <td class="div">
+      <div class="ui input"><input type="text" placeholder="https://vocadb.net/Ar/..." id=preloadfromurl size="70" /></div>
+      <button class="ui button" onclick="if (confirm('This will clear all inputted data. Continue?')) {prepareImportVocaDB();}">Preload</button>
+    </td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td><div class="ui loader" id="vocadbloader"></div></td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr id="thumbrow">
+    <td class="caption center">Producer Profile Picture:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">This tool will attempt to load the producer's profile picture from VocaDB.</span></span></td>
+    <td class="div"><div id="thumbrowinner"></div></td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class="caption center">Producer's main alias:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">The producer's main alias<br>This main alias will be used for the name of the producer's songs list category on the wiki<hr>(required)</span></span></td>
+    <td class=div>
+      <div class="ui input"><input type="text" placeholder="..." id="mainalias" size="82" form="producerpageform" /></div>
+    </td>
+  </tr>
+  <tr id="miscaliasrow">
+    <td class="caption center">Producer's other aliases:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">The producer's other aliases, if exists</span></span></td>
+    <td class=div>
+      <div class="ui input"><input type="text" placeholder="..." id="miscalias" size="82" form="producerpageform" /></div>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class="caption center">Affliations:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Is the producer affliated with any circle/group/project?<br>Add one affliation per line.</span></span></td>
+    <td class="div"><textarea id="affliations" cols="88" rows="3" form="producerpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td class="caption center">Labels:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">What labels (e.g. KarenT, Exit Tunes) is the producer usually affliated with?<br>Add one label/affliation per line.</span></span></td>
+    <td class="div"><textarea id="labels" cols="88" rows="3" form="producerpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td class="caption center">Typical roles:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Describe the producer's typical roles, e.g. composer, lyricist, illustrator.<hr>(required)</span></span></td>
+    <td class=div>
+        <table width=650pt id=producerroles>
+            <tr>
+              <td width=33%>
+                <div class="ui checkbox">
+                  <input type="checkbox" id="composer" form="producerpageform">
+                  <label>Composer</label>
+                </div>
+              </td>
+              <td width=33%>
+                <div class="ui checkbox">
+                  <input type="checkbox" id="lyricist" form="producerpageform">
+                  <label>Lyricist</label>
+                </div>
+              </td>
+              <td width=33%>
+                <div class="ui checkbox">
+                  <input type="checkbox" id="illustrator" form="producerpageform">
+                  <label>Illustrator</label>
+                </div>
+              </td>
+            </tr>
+        </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="caption center">Category Navigation:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Category navigation for the wiki</span></span></td>
+    <td class="div">
+        <table width=600pt>
+            <tr>
+              <td colspan=2>
+                <div class="ui checkbox">
+                  <input type="checkbox" id="cat_album" form="producerpageform">
+                  <label>Has album category?</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td width=50%>
+                <div class="ui checkbox">
+                  <input type="checkbox" id="cat_lyrics" form="producerpageform">
+                  <label>Has "Lyrics" sub-category?</label>
+                </div>
+              </td>
+              <td width=50%>
+                <div class="ui checkbox">
+                  <input type="checkbox" id="cat_arrange" form="producerpageform">
+                  <label>Has "Arrangement" sub-category?</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td width=50%>
+                <div class="ui checkbox">
+                  <input type="checkbox" id="cat_tuning" form="producerpageform">
+                  <label>Has "Tuning" sub-category?</label>
+                </div>
+              </td>
+              <td width=50%>
+                <div class="ui checkbox">
+                  <input type="checkbox" id="cat_visuals" form="producerpageform">
+                  <label>Has "Visuals" sub-category?</label>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td width=50%>
+                <div class="ui checkbox">
+                  <input type="checkbox" id="cat_other" form="producerpageform">
+                  <label>Has "Other" sub-category?</label>
+                </div>
+              </td>
+            </tr>
+        </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="caption">Description:</td>
+    <td class="tooltip"><span class="info">&#x1F6C8;<span class="tooltip">Describe the producer.<hr>(required)</span></span></td>
+    <td class=div><textarea id="description" cols="88" rows="5" form="producerpageform"></textarea></td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class="caption">External Links:</td>
+    <td class="tooltip"><span class="info">&#x1F6C8;<span class="tooltip">
+        Examples of media links:<br />
+        <ul>
+            <li>The producer's official Niconico/YouTube/bilibili accounts.</li>
+            <li>The producer's NND MyList.</li>
+            <li>The producer's piapro.</li>
+            <li>The producer's account on SoundCloud/Netease Music.</li>
+            <li>The producer's Bandcamp/Spotify/TuneCore/other music streaming.</li>
+        </ul>
+        Examples of official links:<br />
+        <ul>
+            <li>The producer's official website.</li>
+            <li>The producer's social media/SNS accounts, e.g. Twitter, Instagram, Weibo.</li>
+        </ul>
+        Examples of unofficial links:<br />
+        <ul>
+            <li>The producer's page on VocaDB.</li>
+            <li>A page on the producer from any unofficial wiki, e.g. the <a href="https://vocaloid.fandom.com/" target="_blank" rel="noopener noreferrer">VOCALOID wiki</a>, the <a href="https://w.atwiki.jp/hmiku/" target="_blank" rel="noopener noreferrer">Hatsune Miku wiki</a>, <a href="https://dic.nicovideo.jp/" target="_blank" rel="noopener noreferrer">Nicopedia</a>, etc.</li>
+        </ul>
+        <hr>(required)</span></span></td>
+    <td class=div>
+      <table><tr><td>
+      <div id="extlinks" tabindex="1" class="jexcel_container">    </div>
+      </tr></td></table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class="caption">Song page list:</td>
+    <td class="tooltip"><span class="info">&#x1F6C8;<span class="tooltip">Add the list of song pages <b>(that exist on Vocaloid Lyrics wiki)</b> here.<hr>(required)</span></span></td>
+    <td class=div>
+        <span class="pagelist">You can get the list of song pages easily using the <a href="https://vocaloidlyrics.fandom.com/wiki/Special:CategoryTree" target="_blank" rel="noopener noreferrer">Category Tree tool in Vocaloid Lyrics wiki</a>. See <a href="https://vocaloidlyrics.fandom.com/wiki/Special:CategoryTree?target=Category%3APinocchio-P+songs+list&mode=pages&namespaces=" target="_blank" rel="noopener noreferrer">this example for Pinocchio-P</a>.</span><br /><br />
+        <table><tr><td>
+        <div id="songpagelist" tabindex="1" class="jexcel_container">    </div>
+        </tr></td></table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><hr></td>
+  </tr>
+  <tr>
+    <td class="caption">Discography:</td>
+    <td class="tooltip"><span class="info">&#x1F6C8;<span class="tooltip">Add the list of album pages <b>(that exist on Vocaloid Lyrics wiki)</b> here.</span></span></td>
+    <td class=div>
+        <span class="pagelist">You can get the list of album pages easily using the <a href="https://vocaloidlyrics.fandom.com/wiki/Special:CategoryTree" target="_blank" rel="noopener noreferrer">Category Tree tool in Vocaloid Lyrics wiki</a>. See <a href="https://vocaloidlyrics.fandom.com/wiki/Special:CategoryTree?target=Category%3APinocchio-P+songs+list&mode=pages&namespaces=" target="_blank" rel="noopener noreferrer">this example for Pinocchio-P</a>.</span><br /><br />
+        <table><tr><td>
+        <div id="albumpagelist" tabindex="1" class="jexcel_container">    </div>
+        </tr></td></table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><br><hr><br></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td>
+      <table width=100%><tr>
+        <td class=div>
+          <button form="producerpageform" class="ui button" onclick="if (confirm('This will clear all inputted data. Continue?')) {more_resets();}">Reset</button>
+        </td>
+        <td class=div width=18%></td>
+        <td class=div width=60%>
+          <button form="producerpageform" class="ui primary button" style="width:300px" onclick="generateProducerPage();">Generate</button>
+          <div class="ui checkbox">
+            <input type="checkbox" id="ignoreerrors" form="producerpageform">
+            <label>ignore errors</label>
+          </div>
+        </td>
+      </tr></table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3"><br><hr><br></td>
+  </tr>
+  <tr>
+    <td></td><td></td>
+    <td>
+      <div class="ui message" id="error" style="width:650pt;"></div>
+    </td>
+  </tr>
+</table>
+
+<table width=100%>
+  <tr>
+    <td colspan="2" class="caption" style="font-size: 20pt; text-align: center;">Results <button class="ui button" onclick="copyOutputToClipboard();">Copy Output</button></td>
+  </tr>
+  <tr>
+    <td colspan="2" id="pagetitle" class=caption style="text-align: center;"></td>
+  </tr>
+  <tr>
+    <td width=17%> </td>
+    <td><textarea readonly="readonly" id="output" cols="120" rows="40"></textarea></td>
+  </tr>
+</table>
+<div class="ui divider"></div>
+<table width=100% id="footer">
+</table>
+
+<script>
+
+add_site_footer();
+
+//Event handling for external links input table: automatically detect the website in the URL
+let extLinkChanged = function(instance, cell, col, row, value) {
+  try {
+    if (col==0 && value.trim() !== "") {
+      let siteurl = value;
+      let sitename = identify_website(siteurl);
+      if (siteurl.match(/^https?:\/\/.*/)) {
+        extLinksTable.setValueFromCoords(col, row, "<a href=\"" + siteurl + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + siteurl + "</a>");
+      }
+      extLinksTable.setValueFromCoords(col+1, row, sitename);
+    }
+  }
+  catch (error) {}
+};
+
+//Initialize external links input table
+extLinksTable = jspreadsheet(document.getElementById("extlinks"), {
+  data: [...Array(5)].map(e => ["","",false,false,false]),
+  columns: [
+    { type: "html", title: "URL", width: 500 },
+    { type: "text", title: "Description", width: 200 },
+    { type: "checkbox", title: "Media", width: 60 },
+    { type: "checkbox", title: "Official", width: 60 },
+    { type: "checkbox", title: "Inactive", width: 60 }
+  ],
+  colAlignments: ["left", "left", "center", "center", "center"],
+  columnSorting: true,
+  rowDrag: true,
+  allowInsertRow: true,
+  allowManualInsertRow: true,
+  allowInsertColumn: false,
+  allowManualInsertColumn: false,
+  allowDeleteRow: true,
+  allowDeleteColumn: false,
+  allowRenameColumn: false,
+  //minDimensions: [3,5],
+  onchange: extLinkChanged
+});
+
+//Initialize song page list input table
+songPageTable = jspreadsheet(document.getElementById("songpagelist"), {
+  data: [...Array(5)].map(e => ["",""]),
+  columns: [
+    { type: "text", title: "Song page", width: 500 },
+    { type: "text", title: "Additional PWT Row Template Params", width: 300 },
+  ],
+  colAlignments: ["left", "left"],
+  columnSorting: true,
+  rowDrag: true,
+  allowInsertRow: true,
+  allowManualInsertRow: true,
+  allowInsertColumn: false,
+  allowManualInsertColumn: false,
+  allowDeleteRow: true,
+  allowDeleteColumn: false,
+  allowRenameColumn: false
+});
+
+//Initialize album page list input table
+albumPageTable = jspreadsheet(document.getElementById("albumpagelist"), {
+  data: [...Array(5)].map(e => ["",""]),
+  columns: [
+    { type: "text", title: "Album page", width: 500 },
+    { type: "text", title: "Additional AWT Row Template Params", width: 300 },
+  ],
+  colAlignments: ["left", "left"],
+  columnSorting: true,
+  rowDrag: true,
+  allowInsertRow: true,
+  allowManualInsertRow: true,
+  allowInsertColumn: false,
+  allowManualInsertColumn: false,
+  allowDeleteRow: true,
+  allowDeleteColumn: false,
+  allowRenameColumn: false
+});
+
+$("#miscaliasrow").hide();
+$("#vocadbloader").hide();
+$("#error").hide();
+$("#thumbrow").hide();
+
+</script>
+</body>
+</html>

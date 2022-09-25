@@ -1,7 +1,7 @@
 /*
  * Show code history at footer of each site
  */
-const version_history = "2.2.0";
+const version_history = "2.2.1";
 const update_code = "NX0012"
 
 /*
@@ -193,6 +193,9 @@ const pvserviceabbr =
 const listRecognizedLinks = 
     listPVService.concat(
     [
+    {re:"^https?://www\\.youtube\\.com/user/.*",                site:"YouTube Channel"},
+    {re:"^https?://www\\.youtube\\.com/channel/.*",             site:"YouTube Channel"},
+    {re:"^https?://space\\.bilibili\\.com/.*",                  site:"bilibili Space"},
     {re:"^https?://www\\.animelyrics\\.com/.*",                 site:"Anime Lyrics"},
     {re:"^https?://vocadb\\.net/.*",                            site:"VocaDB"},
     {re:"^https?://vocaloidlyrics\\.fandom\\.com/*",            site:"Vocaloid Lyrics Wiki"},
@@ -228,6 +231,10 @@ const listRecognizedLinks =
     {re:"^https?://lenslyrics\\.ml/.*",                         site:"Len's Lyrics"},
     {re:"^https?://pan\\.baidu\\.com/\\.*",                     site:"Baidu"},
     {re:"^https?://5sing\\.kugou\\.com/.*",                     site:"5Sing"},
+    {re:"^https?://[^.]+\\.spotify\\.com/.*",                   site:"Spotify"},
+    {re:"^https?://[^.]+\\.booth\\.pm/.*",                      site:"Booth"},
+    {re:"^https?://www\\.pixiv\\.net/fanbox/.*",                site:"Pixiv Fandbox"},
+    {re:"^https?://www\\.tunecore\\.co\\.jp/.*",                site:"TuneCore Japan"},
     ]);
 
 const languages =
@@ -419,7 +426,7 @@ function add_site_footer(bIsMainDoc = false) {
         str_html += `, based on earlier work by <a href="https://vocaloidlyrics.fandom.com/wiki/User:ElectricRaichu" target="_blank" rel="noopener noreferrer">ElectricRaichu</a> and <a href="https://vocaloidlyrics.fandom.com/wiki/User:Nefere" target="_blank" rel="noopener noreferrer">Nefere</a>`
     }
     str_html += `.<br>Powered by <a href="https://semantic-ui.com/" target="_blank" rel="noopener noreferrer">Semantic UI</a> and <a href="https://github.com/jspreadsheet/ce" target="_blank" rel="noopener noreferrer">JSpreadsheet</a><br><br>Github Repository: <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator" target="_blank" rel="noopener noreferrer">VLW Song Page Generator</a><br>Re-use and modification permitted under the CC license.</p><p>v` + version_history + ` - Update code: ` + update_code + `</p></td>
-<td width=50% class="footer" style="text-align: right;"><p>Navigation:<br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/main.html" target="_blank" rel="noopener noreferrer">Song Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/album.html" target="_blank" rel="noopener noreferrer">Album Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/lyricseditor.html" target="_blank" rel="noopener noreferrer">Advanced Lyrics Editing</a></ul></p></td>
+<td width=50% class="footer" style="text-align: right;"><p>Navigation:<br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/main.html" target="_blank" rel="noopener noreferrer">Song Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/album.html" target="_blank" rel="noopener noreferrer">Album Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/producer.html" target="_blank" rel="noopener noreferrer">Producer Page Generator (beta)</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/lyricseditor.html" target="_blank" rel="noopener noreferrer">Advanced Lyrics Editing</a></p></td>
 </tr>`
     str_html += `<tr><td colspan="2" class="footer">If this page generator is not working correctly after a recent patch, then you might want to try <a href="https://its.uiowa.edu/support/article/719" target="_blank" rel="noopener noreferrer">clearing the cache</a> (NOT browser setting/history)</td></tr>`
     element_footer.innerHTML = str_html;
