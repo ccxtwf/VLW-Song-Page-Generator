@@ -81,7 +81,7 @@ async function importFromVocaDB() {
             webLink_isInactive = webLink.disabled;
             webLink_isOfficial = (webLink_category == "Official" || webLink_category == "Commercial")
             webLink_site = identify_website(webLink_url);
-            webLink_isMedia = (["YouTube", "Niconico", "bilibili", "piapro", "SoundCloud", "Bandcamp", "Vimeo", "Netease Music", "YouTube Channel", "Spotify", "Tunecore Japan"].includes(webLink_site));
+            webLink_isMedia = (["YouTube", "Niconico", "bilibili", "piapro", "SoundCloud", "Bandcamp", "Vimeo", "Netease Music", "YouTube Channel", "Spotify", "Tunecore Japan", "bilibili Space"].includes(webLink_site));
             webLink_url = "<a href=\"" + webLink_url + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + webLink_url + "</a>";
             extLinks.push([webLink_url, webLink_description, webLink_isMedia, webLink_isOfficial, webLink_isInactive]);
         });
