@@ -294,7 +294,7 @@ const languages =
     {id:["Matchakame"],
         license:"http://matchakame.tumblr.com/about|her tumblr"},
     {id:["PeanutSub"],
-        license:"https://peanut-sub.tumblr.com/bya|their blog"},
+        license:"https://peanut-sub.tumblr.com/about|their blog"},
     {id:["poppochan28"],
         license:"https://poppochan.dreamwidth.org/438.html|their blog"},
     {id:["Pricecheck Translations"],
