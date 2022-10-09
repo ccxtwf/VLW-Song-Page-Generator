@@ -208,10 +208,12 @@ function generateProducerPage() {
     let strProducerCategoryNavigation = `==Producer categories==
 {{ProdLinks|catname = $_MAINCAT|album =$_cat_album|lyrics =$_cat_lyrics|arrangement =$_cat_arrange|tuning =$_cat_tuning|other =$_cat_other|visuals =$_cat_visuals}}`;
     let strLinksTemplate = `{{links |p=yes
-   |at     = $_UTAUDB_SITEID
+   |atmiku = $_MIKUWIKI_SITEID
+   |atutau = $_UTAUDB_SITEID
    |nico   = $_NICOPEDIA_SITEID
    |vocadb = $_VOCADB_SITEID
    |tag    = $_NICOTAG_SITEID
+   |mgp    = $_MGP_SITEID
 }}`
     let strCategories = "";
     let strSongPageList = "";
@@ -219,10 +221,12 @@ function generateProducerPage() {
     let strProducerPage = "";
 
     let linksTemplate_regex = {
+        MIKUWIKI:/^https?:\/\/w\.atwiki\.jp\/hmiku\/pages\/(\d*)\.html/,
         UTAUDB:/^https?:\/\/w\.atwiki\.jp\/utauuuta\/pages\/(\d*)\.html/,
         NICOPEDIA:/^https?:\/\/dic\.nicovideo\.jp\/id\/(.*)$/,
         VOCADB:/^https?:\/\/vocadb\.net\/Ar\/(\d*)/,
-        NICOTAG:/^https?:\/\/www\.nicovideo\.jp\/tag\/(.*)$/
+        NICOTAG:/^https?:\/\/www\.nicovideo\.jp\/tag\/(.*)$/,
+        MGP:/^https?:\/\/mzh\.moegirl\.org\.cn\/(.*)$/
     };
 
     //Set the producer category navigation

@@ -1,7 +1,7 @@
 /*
  * Show code history at footer of each site
  */
-const version_history = "2.2.1";
+const version_history = "2.2.2";
 const update_code = "NX0012"
 
 /*
