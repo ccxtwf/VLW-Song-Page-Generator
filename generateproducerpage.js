@@ -1,6 +1,6 @@
 //This script file also refers to the variables extLinksTable and trackListTable in the albumgenerator HTML doc.
 
-const list_roles = ["composer", "lyricist", "illustrator"];
+const list_roles = ["composer", "lyricist", "tuner", "illustrator", "animator", "arranger", "instrumentalist", "mixer", "masterer"];
 
 //Declaration to local JSon file
 let listofvocaloid;
@@ -53,7 +53,7 @@ async function importFromVocaDB() {
         description = vocadbjson.description;
         mainalias = vocadbjson.name;
         additionalnames = vocadbjson.additionalNames;
-        description = "'''" + mainalias + "''' (" + additionalnames + ") is a VOCALOID producer. " + description;
+        description = "'''" + mainalias + "''' (" + additionalnames + ") is a vocal synth producer. " + description;
 
         //Get the producer's affliations
         vocadbjson.artistLinks.forEach( artistLink => {
@@ -129,6 +129,20 @@ function check_form_for_errors() {
     if (read_text("mainalias") == "") {
         arrStrError.push("You must add a main alias for the producer.");
         $("#mainalias").parent().toggleClass("error",true);
+    }
+
+    //No language selected?
+    let language = $("#languagelist").dropdown("get value").trim();
+    if (language == "") {
+        arrStrError.push("You haven't chosen a language.");
+        $("#languagelist").toggleClass("error",true);
+    }
+
+    //No listed vocal synth engines?
+    let synthengine = $("#featuredsynth").dropdown("get value").trim();
+    if (synthengine == "") {
+        arrStrError.push("Please list at least one vocal synth engine, e.g. VOCALOID. Choose \"Other/Unlisted\" if not on the list.");
+        $("#featuredsynth").toggleClass("error",true);
     }
 
     //Typical roles aren't selected
@@ -221,7 +235,7 @@ function generateProducerPage() {
     let strProducerPage = "";
 
     let linksTemplate_regex = {
-        MIKUWIKI:/^https?:\/\/w\.atwiki\.jp\/hmiku\/pages\/(\d*)\.html/,
+        MIKUWIKI:/^https?:\/\/(?:w|www5)\.atwiki\.jp\/hmiku\/pages\/(\d*)\.html/,
         UTAUDB:/^https?:\/\/w\.atwiki\.jp\/utauuuta\/pages\/(\d*)\.html/,
         NICOPEDIA:/^https?:\/\/dic\.nicovideo\.jp\/id\/(.*)$/,
         VOCADB:/^https?:\/\/vocadb\.net\/Ar\/(\d*)/,
@@ -239,7 +253,7 @@ function generateProducerPage() {
             strProducerCategoryNavigation = strProducerCategoryNavigation.replace("$_" + checkbox, "");
         }
     });
-    strProducerCategoryNavigation = strProducerCategoryNavigation.replace("$_MAINCAT", mainalias);
+    strProducerCategoryNavigation = strProducerCategoryNavigation.replace("$_MAINCAT", mainalias.replace(" ", "_"));
     strProducerCategoryNavigation += "\n\n"
 
     //Set the producer's affliations
@@ -329,6 +343,24 @@ function generateProducerPage() {
             strCategories += "[[Category:" + setcategory + "s]]\n";
         }
     })
+    //Categories: Language
+    let arrLanguages = [];
+    arrLanguages = $("#languagelist").dropdown("get value").split(",");
+    arrLanguages = arrLanguages.map(function (lang) {return languages[lang].name});
+    if (arrLanguages.length && arrLanguages[0] !== "") { 
+        arrLanguages.forEach(lang => {
+            if (lang == "Mandarin") {lang = "Chinese"};
+            strCategories += "[[Category:" + lang + " original producers]]\n";
+        });
+    }
+    //Categories: Vocal Synth Groups
+    let arrFeaturingSynths = [];
+    arrFeaturingSynths = $("#featuredsynth").dropdown("get value").split(",");
+    if (arrFeaturingSynths.length && arrFeaturingSynths[0] !== "") { 
+        arrFeaturingSynths.forEach(featuredSynth => {
+            strCategories += "[[Category:Producers using " + featuredSynth + "]]\n";
+        });
+    }
 
     //Set the song page list
     strSongPageList += "==Works==\n{| class=\"sortable producer-table\"\n|- class=\"vcolor-default\"\n! {{pwt head}}\n";

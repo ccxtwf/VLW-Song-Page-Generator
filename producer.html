@@ -36,6 +36,72 @@ let songPageTable = jspreadsheet(document.getElementById("songpagelist"));
 let albumPageTable = jspreadsheet(document.getElementById("albumpagelist"));
 
 /*
+ * Populate dropdown box: Language List
+ */
+ function populate_language_list() {
+  let ll = $("#languagelist");
+  let strHTML = "";
+  strHTML += `<div class="text" style="color:#d4d4d5;">Choose a language:
+    <i class="dropdown icon"></i></div>
+    <div class="menu">\n`;
+  for (let i = 0; i < languages.length; i++) {
+    strHTML += "\t\t<div class=\"item\" data-value=" + i + ">" + languages[i].name + "</div>\n";
+  }
+  strHTML += "</div>";
+  ll.append(strHTML);
+  ll.dropdown();
+}
+
+/*
+ * Populate list table of checkboxes: Producer roles
+ */
+ function populate_producer_role_checkbox() {
+  let htmltable_role = $("#producerroles");
+  let strHTML = "";
+  let list_roles = [
+    "Composer", "Lyricist", "Tuner", 
+    "Illustrator", "Animator", "",
+    "Arranger", "Instrumentalist", "",
+    "Mixer", "Masterer", ""]
+  for (let i = 0; i < list_roles.length; i++) {
+    pos_row = i%3;
+    if (pos_row == 0) {strHTML += "<tr>\n"}
+    role = list_roles[i]
+    if (role !== "") {
+      strHTML += `<td width=33%><div class="ui checkbox">
+      <input type="checkbox" id="` + role.toLowerCase() + `" form="producerpageform">
+      <label>` + role + `</label>
+      </div>
+    </td>\n`;
+    }
+    if (pos_row == 2) {strHTML += "</tr>\n"}
+  }
+  console.log(strHTML);
+  htmltable_role.html(strHTML);
+}
+
+/*
+ * Populate dropdown box: Vocal synth engine List
+ */
+ function populate_vocalsynthenginelist() {
+
+let vsl = $("#featuredsynth");
+let strHTML = "";
+strHTML += `<div class="text" style="color:#d4d4d5;">Featuring Synth Engines:</span>
+  <i class="dropdown icon"></i></div>
+  <div class="menu">\n`;
+for (let i = 0; i < listofsynthengines.length; i++) {
+  strHTML += "<div class=\"item\" data-value=\"" + listofsynthengines[i] + "\">" + listofsynthengines[i] + "</div>\n";
+  if (i==3) {strHTML += "<hr><div><b>&nbsp;&nbsp;Other voice synthesizers:</b></div>\n";};
+};
+strHTML += "<div class=\"item\" data-value=\"Other Voice Synthesizer\">Other/Unlisted</div>\n";
+
+strHTML += "</div>";
+vsl.append(strHTML);
+vsl.dropdown();
+}
+
+/*
  * Clear the album page form and reset various elements in the HTML doc
  */
 function more_resets()
@@ -59,6 +125,8 @@ function more_resets()
  function error_resets() {
   let arrDomElements = [
     $("#mainalias").parent(),
+    $("#languagelist"),
+    $("#featuredsynth"),
     $("#producerroles"),
     $("#description"),
     $("#extlinks").parent(),
@@ -162,31 +230,24 @@ table.error, tr.error, td.error {
     <td class="div"><textarea id="labels" cols="88" rows="3" form="producerpageform"></textarea></td>
   </tr>
   <tr>
+    <td class="caption center">Language:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">What language does the producer like to write their songs in? e.g. Japanese, English<hr>(required)</span></span></td>
+    <td class="div">
+      <div class="ui scrolling multiple search dropdown icon" id="languagelist" style="width:500pt; font-size:10pt" form="producerpageform"></div>
+    </td>
+  </tr>
+  <tr>
+    <td class="caption center">Uses the synthesizers:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">What voice synthesizer group/software family/engine does the producer like to write their songs with? e.g. VOCALOID, UTAU<hr>(required)</span></span></td>
+    <td class="div">
+      <div class="ui scrolling multiple search dropdown" id="featuredsynth" style="width:500pt; font-size:10pt;" form="songpageform"></div>
+    </td>
+  </tr>
+  <tr>
     <td class="caption center">Typical roles:</td>
     <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Describe the producer's typical roles, e.g. composer, lyricist, illustrator.<hr>(required)</span></span></td>
     <td class=div>
-        <table width=650pt id=producerroles>
-            <tr>
-              <td width=33%>
-                <div class="ui checkbox">
-                  <input type="checkbox" id="composer" form="producerpageform">
-                  <label>Composer</label>
-                </div>
-              </td>
-              <td width=33%>
-                <div class="ui checkbox">
-                  <input type="checkbox" id="lyricist" form="producerpageform">
-                  <label>Lyricist</label>
-                </div>
-              </td>
-              <td width=33%>
-                <div class="ui checkbox">
-                  <input type="checkbox" id="illustrator" form="producerpageform">
-                  <label>Illustrator</label>
-                </div>
-              </td>
-            </tr>
-        </table>
+        <table width=650pt id=producerroles></table>
     </td>
   </tr>
   <tr>
@@ -354,6 +415,9 @@ table.error, tr.error, td.error {
 
 <script>
 
+populate_language_list();
+populate_vocalsynthenginelist()
+populate_producer_role_checkbox();
 add_site_footer();
 
 //Event handling for external links input table: automatically detect the website in the URL
