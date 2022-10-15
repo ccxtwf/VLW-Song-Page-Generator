@@ -200,7 +200,7 @@ function getCredits(artistJson) {
     let artistCategories_toread = ""
 
     artistJson.forEach(artist_toread => {
-        console.log(artist_toread);
+        //console.log(artist_toread);
         artistCategories_toread = artist_toread.categories
         //Artist is a vocalist (whether human or synth)
         if (artistCategories_toread.search("Vocalist") > -1) {
