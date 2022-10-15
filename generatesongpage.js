@@ -61,9 +61,7 @@ function determineLanguages() {
 
     let arrLyricsOrigLang = [];
     let arrLyricsTransliteration = [];
-    arrLyricsOrigLang = arrLanguages.map(function (lang) {
-      if (languages[lang].name == "Mandarin") {return "Chinese"}
-      else {return languages[lang].name}});
+    arrLyricsOrigLang = arrLanguages.map(function (lang) {return languages[lang].name});
     let arrTransliteratedLanguages = arrLanguages.filter(function (language) {return "transliteration" in languages[language];});
     arrLyricsTransliteration = arrTransliteratedLanguages.map(lang => languages[lang].transliteration);
 
@@ -212,6 +210,7 @@ function generateInfoBox() {
       if ((!playLink[2] && !playLink[4] && playLink[0] in pvserviceabbr)) {
         viewCountStr = playLink[5].trim();
         viewCountStr = viewCountStr.replace(/[,.]\s?(?=\d{3})/g, "");
+        viewCountStr = viewCountStr.replace(/\+/g, "");
         //Round down view count number if numeric
         if (viewCountStr !== "" && !isNaN(viewCountStr)) {
           viewCount = parseInt(viewCountStr);
@@ -225,7 +224,7 @@ function generateInfoBox() {
           strViewCountPerPV = viewCount.toLocaleString('en-US') + "+";
         }
         //Show view count number as text if non-numeric
-        else {strViewCountPerPV = viewCountStr;}
+        else {strViewCountPerPV = playLink[5].trim();}
         //Show the website on which the PV is published, if needed
         if (bShowPVService) {strViewCountPerPV += " (" + pvserviceabbr[playLink[0]] + ")";}
         strViewCount = addItemToListString(strViewCountPerPV, strViewCount, ", ");
@@ -327,7 +326,7 @@ function generateLyrics() {
     }
     else {
       if (bLyricsAreRomanized || bTranslationExists) {
-        strLyricsTable += "|'''''" + configLanguages.arrLyricsOrigLang.join("/") + "'''''\n";
+        strLyricsTable += "|'''''" + configLanguages.arrLyricsOrigLang.join("/").replace("Mandarin", "Chinese") + "'''''\n";
       }
       //Add romanized lyrics column
       if (bLyricsAreRomanized) {
@@ -596,6 +595,7 @@ function autoloadCategories() {
           case "illust":
           case "illustration":
           case "PV":
+          case "movie":
           case "video":
           case "animation":
             bProdWikiCat["visuals"] = true;

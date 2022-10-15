@@ -25,7 +25,7 @@ async function importFromVocaDB() {
     let extLinks = [];
     let thumbLinks = [];
 
-    let arrFeaturingSynths = new Set();
+    let setOfSynths = new Set();
 
     let siteurl = document.getElementById("preloadfromurl").value.trim();
     //console.log(siteurl);
@@ -72,97 +72,11 @@ async function importFromVocaDB() {
         });
         let dateOfPublication_rawStr = vocadbjson.publishDate;
         dateOfPublication = new Date(dateOfPublication_rawStr);
-        let artists = vocadbjson.artists;
-        let lookupJSonEntry = {};
-        let artistName = "";
-        let redirect = "";
-        let minorSingers = "";
-        let artistCredit = "";
-        let groupCredit = "";
-        let arrArtistRoles = [];
-        artists.forEach(artist => {
-            switch(artist.categories) {
-
-                case "Vocalist":
-                    try {
-                        lookupJSonEntry = listofvocaloid[artist.artist.id];
-                        //console.log(artist.artist.id);
-                        artistName = lookupJSonEntry.fullvoicebankname;
-                        redirect = lookupJSonEntry.basevoicebankname;
-                        if (artistName == redirect) {artistName = "[[" + artistName + "]]";}
-                        else {artistName = "[[" + artistName + "|" + redirect + "]]";};
-                        arrFeaturingSynths.add(lookupJSonEntry.synthgroup);
-                    }
-                    catch (error) {
-                        console.log(error);
-                        artistName = artist.name;
-                    }
-                    if (artist.isSupport) {minorSingers = addItemToListString(artistName, minorSingers, ", ");}
-                    else {singers = addItemToListString(artistName, singers, ", ");}
-                    break;
-
-                case "Producer":
-                case "Illustrator":
-                case "Animator":
-                case "Other":
-                    //artistCredit = artist.name;
-                    artistCredit = "";
-                    arrArtistRoles = artist.effectiveRoles.split(", ");
-                    arrArtistRoles.forEach(artistRole => {
-                        switch(artistRole) {
-                            case "Default":
-                                artistCredit = addItemToListString("music", artistCredit, ", ");
-                                break;
-                            case "Composer":
-                                artistCredit = addItemToListString("music", artistCredit, ", ");
-                                break;
-                            case "VoiceManipulator":
-                                artistCredit = addItemToListString("tuning", artistCredit, ", ");
-                                break;
-                            case "Arranger":
-                                artistCredit = addItemToListString("arrange", artistCredit, ", ");
-                                break;
-                            case "Mixer":
-                                artistCredit = addItemToListString("mix", artistCredit, ", ");
-                                break;
-                            case "Mastering":
-                                artistCredit = addItemToListString("mastering", artistCredit, ", ");
-                                break;
-                            case "Lyricist":
-                                artistCredit = addItemToListString("lyrics", artistCredit, ", ");
-                                break;
-                            case "Instrumentalist":
-                                artistCredit = addItemToListString("instruments", artistCredit, ", ");
-                                break;
-                            case "Illustrator":
-                                artistCredit = addItemToListString("illustration", artistCredit, ", ");
-                                break;
-                            case "Animator":
-                                artistCredit = addItemToListString("PV", artistCredit, ", ");
-                                break;
-                            case "Distributor":
-                            case "Publisher":
-                                //groupCredit = "<b>" + artist.name + ":</b>\n";
-                                artistCredit = addItemToListString("publisher", artistCredit, ", ");
-                                break;
-                            case "Other":
-                            default:
-                                artistCredit = addItemToListString("other", artistCredit, ", ");
-                                break;
-                        };
-                    });
-                    producers = addItemToListString(artist.name + " (" + artistCredit + ")", producers, "\n");
-                    break;
-
-                case "Circle":
-                    groupCredit = "<b>" + artist.name + ":</b>\n";
-
-                default:
-                    break;
-            }
-        });
-        producers = groupCredit + producers;
-        if (minorSingers !== "") singers += "\n<small>" + minorSingers + "</small>";
+        //Output credits for singers, producers and list of synths in use
+        let obj_credits = getCredits(vocadbjson.artists);
+        singers = obj_credits.singers;
+        producers = obj_credits.producers;
+        setOfSynths = obj_credits.setofsynths;
 
         //Obtain list of official & unofficial play links, plus thumbnail links to official PV stills 
         let pvs = vocadbjson.pvs;
@@ -238,9 +152,9 @@ async function importFromVocaDB() {
         if (extLinks.length > 0) extLinksTable.setData(extLinks);
 
         //Add featured synth software
-        //console.log(arrFeaturingSynths);
+        //console.log(setOfSynths);
         //console.log(listofsynthengines);
-        arrFeaturingSynths.forEach( featuredSynth => {
+        setOfSynths.forEach( featuredSynth => {
             if (listofsynthengines.includes(featuredSynth)) {
                 $("#featuredsynth").dropdown("set selected", featuredSynth);
             }
@@ -261,6 +175,125 @@ async function importFromVocaDB() {
     }
     else {
         window.alert("URL must be from a VocaDB song page and start with 'https://vocadb.net/S/'");
+    }
+}
+
+/*
+ * Return an object containing: 1) The singer credits, including minor singers (as a string)
+ *                              2) The producer credits, including group/label/circle (as a string)
+ *                              3) The set of vocal producer engine/software
+ */
+function getCredits(artistJson) {
+    let lookupJSonEntry = {};
+    let setOfSynths = new Set();
+
+    let artistName = "";
+    let redirect = "";
+
+    let singers = "";
+    let producers = "";
+    let minorSingers = "";
+    let artistCredit = "";
+    let groupCredit = "";
+    let arrArtistRoles = [];
+
+    let artistCategories_toread = ""
+
+    artistJson.forEach(artist_toread => {
+        console.log(artist_toread);
+        artistCategories_toread = artist_toread.categories
+        //Artist is a vocalist (whether human or synth)
+        if (artistCategories_toread.search("Vocalist") > -1) {
+            try {
+                lookupJSonEntry = listofvocaloid[artist_toread.artist.id];
+                //console.log(artist_toread.artist.id);
+                artistName = lookupJSonEntry.fullvoicebankname;
+                redirect = lookupJSonEntry.basevoicebankname;
+                if (artistName == redirect) {artistName = "[[" + artistName + "]]";}
+                else {artistName = "[[" + artistName + "|" + redirect + "]]";};
+                setOfSynths.add(lookupJSonEntry.synthgroup);
+            }
+            catch (error) {
+                console.log(error);
+                artistName = artist_toread.name;
+            }
+            if (artist_toread.isSupport) {minorSingers = addItemToListString(artistName, minorSingers, ", ");}
+            else {singers = addItemToListString(artistName, singers, ", ");}
+        }
+        //Song is released under a circle
+        if (artistCategories_toread.search("Circle") > -1) {
+            groupCredit = "<b>" + artist_toread.name + ":</b>\n";
+        }
+        //Cases where the artist is not a vocalist or a circle group
+        if (artistCategories_toread !== "Vocalist" && artistCategories_toread !== "Circle") {
+            //artistCredit = artist_toread.name;
+            artistCredit = "";
+            arrArtistRoles = artist_toread.effectiveRoles.split(", ");
+            arrArtistRoles.forEach(artistRole => {
+                switch(artistRole) {
+                    case "Default":
+                        artistCredit = addItemToListString("music", artistCredit, ", ");
+                        break;
+                    case "Composer":
+                        artistCredit = addItemToListString("music", artistCredit, ", ");
+                        break;
+                    case "VoiceManipulator":
+                        artistCredit = addItemToListString("tuning", artistCredit, ", ");
+                        break;
+                    case "Arranger":
+                        artistCredit = addItemToListString("arrange", artistCredit, ", ");
+                        break;
+                    case "Mixer":
+                        artistCredit = addItemToListString("mix", artistCredit, ", ");
+                        break;
+                    case "Mastering":
+                        artistCredit = addItemToListString("mastering", artistCredit, ", ");
+                        break;
+                    case "Lyricist":
+                        artistCredit = addItemToListString("lyrics", artistCredit, ", ");
+                        break;
+                    case "Instrumentalist":
+                        artistCredit = addItemToListString("instruments", artistCredit, ", ");
+                        break;
+                    case "Illustrator":
+                        artistCredit = addItemToListString("illustration", artistCredit, ", ");
+                        break;
+                    case "Animator":
+                        artistCredit = addItemToListString("PV", artistCredit, ", ");
+                        break;
+                    case "Distributor":
+                    case "Publisher":
+                        //groupCredit = "<b>" + artist_toread.name + ":</b>\n";
+                        artistCredit = addItemToListString("publisher", artistCredit, ", ");
+                        break;
+                    case "Vocalist":
+                        artistCredit = addItemToListString("vocals", artistCredit, ", ");
+                        break;
+                    case "Chorus":
+                        artistCredit = addItemToListString("chorus", artistCredit, ", ");
+                        break;
+                    case "Encoder":
+                        artistCredit = addItemToListString("encoding", artistCredit, ", ");
+                        break;
+                    case "VocalDataProvider":
+                        artistCredit = addItemToListString("voice provider", artistCredit, ", ");
+                        break;
+                    case "Other":
+                    default:
+                        artistCredit = addItemToListString("other", artistCredit, ", ");
+                        break;
+                };
+            });
+            producers = addItemToListString(artist_toread.name + " (" + artistCredit + ")", producers, "\n");
+        }
+    });
+    producers = groupCredit + producers;
+    if (minorSingers !== "") singers += "\n<small>" + minorSingers + "</small>";
+
+    return {
+        "singers":singers,
+        "producers":producers,
+        "setofsynths":setOfSynths
     }
 }
 

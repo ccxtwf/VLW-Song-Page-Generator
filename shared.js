@@ -1,8 +1,8 @@
 /*
  * Show code history at footer of each site
  */
-const version_history = "2.2.2";
-const update_code = "NX0012"
+const version_history = "2.2.3";
+const update_code = "CDa014"
 
 /*
  * Stores shared arrays and functions
