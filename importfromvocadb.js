@@ -214,6 +214,7 @@ function getCredits(artistJson) {
                 setOfSynths.add(lookupJSonEntry.synthgroup);
             }
             catch (error) {
+                console.log("Cannot read records for " + artist_toread.name);
                 console.log(error);
                 artistName = artist_toread.name;
             }

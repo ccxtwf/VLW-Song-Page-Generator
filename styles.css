@@ -1,6 +1,7 @@
 /* table, th, td {border: 1px solid;} */
 body {
 color: navy;
+overflow: scroll; /* Show scrollbars */
 }
 td {
 font-size: 10pt;

@@ -510,19 +510,23 @@ function autoloadCategories() {
   strSingers = strSingers.replace(/<small>.*<\/small>/, "");
   let arrSingers = strSingers.match(/\[\[[^\[\]:]*\]\]/gm);
   if (Array.isArray(arrSingers)) {arrSingers = arrSingers.map(singer => singer.replace(/\|.*(?=\]\])/,""));}
+  else {arrSingers = []};
   
   strSingers = read_textbox("singer").toString();
   let arrMinorSingers = strSingers.match(/<small>.*<\/small>/gm);
   if (Array.isArray(arrMinorSingers)) {
     strSingers = arrMinorSingers[0];
     arrMinorSingers = strSingers.match(/\[\[[^\[\]:]*\]\]/gm);
-    if (Array.isArray(arrMinorSingers)) {arrMinorSingers = arrMinorSingers.map(singer => singer.replace(/\|.*(?=\]\])/,""));};
-  };
+    if (Array.isArray(arrMinorSingers)) {arrMinorSingers = arrMinorSingers.map(singer => singer.replace(/\|.*(?=\]\])/,""));}
+    else {arrMinorSingers = []};
+  }
+  else {arrMinorSingers = []};
   //console.log(arrSingers);
   //console.log(arrMinorSingers);
   
   let strProducers = read_textbox("producers").toString();
   let arrProducers = strProducers.match(/\[\[[^\[\]:]*\]\]\s\([^\(\)]*\)/gm);
+  if (!Array.isArray(arrProducers)) {arrProducers = []};
   
   let prodName = "";
   let strProdRoles = "";
@@ -551,90 +555,93 @@ function autoloadCategories() {
   }
 
   //Categories: Singers (including minor singers)
-  if (Array.isArray(arrSingers) && arrSingers.length) { 
-    arrSingers.forEach(singer => {
-      singer = singer.substring(2, singer.length-2);
-      strAutoloadCategories += "\nSongs featuring " + singer;
-    });
-    if (Array.isArray(arrMinorSingers) && arrMinorSingers.length) {
-      arrMinorSingers.forEach(singer => {
-        singer = singer.substring(2, singer.length-2);
-        strAutoloadCategories += "\nSongs featuring " + singer;
-      });
-    }
-    //Categories: Number of singers (excluding minor singers)
-    if (arrSingers.length > 3) {strAutoloadCategories += "\n" + "Group rendition original songs"}
-    else if (arrSingers.length > 2) {strAutoloadCategories += "\n" + "Trios original songs"}
-    else if (arrSingers.length > 1) {strAutoloadCategories += "\n" + "Duet original songs"};
-  }
+  arrSingers.forEach(singer => {
+    singer = singer.substring(2, singer.length-2);
+    strAutoloadCategories += "\nSongs featuring " + singer;
+  });
+  arrMinorSingers.forEach(singer => {
+    singer = singer.substring(2, singer.length-2);
+    strAutoloadCategories += "\nSongs featuring " + singer;
+  });
+  //Categories: Number of singers (excluding minor singers)
+  switch (arrSingers.length) {
+    case 0:
+    case 1:
+      //do nothing
+      break;
+    case 2:
+      strAutoloadCategories += "\n" + "Duet original songs";
+    case 3:
+      strAutoloadCategories += "\n" + "Trios original songs";
+    default:
+      strAutoloadCategories += "\n" + "Group rendition original songs";
+  };
 
   //Categories: Producers
-  if (Array.isArray(arrProducers) && arrProducers.length) {
-    arrProducers.forEach(producer => {
-      prodName = producer.match(/\[\[[^\[\]]*\]\]/gm)[0];
-      strProdRoles = producer.replace(prodName + " ", "");
-      prodName = prodName.substring(2, prodName.length-2);
-      strProdRoles = strProdRoles.substring(1, strProdRoles.length-1);
-      arrProdRoles = strProdRoles.split(",");
-      bProdWikiCat = {"music":false,"lyrics":false,"tuning":false,"arrangement":false,"visuals":false,"other":false,"default":false};
-      arrProdRoles.forEach(prodRole => {
-        switch(prodRole.trim()) {
-          case "music":
-            bProdWikiCat["music"] = true;
-            break;
-          case "lyrics":
-            bProdWikiCat["lyrics"] = true;
-            break;
-          case "tuning":
-            bProdWikiCat["tuning"] = true;
-            break;
-          case "arrange":
-          case "arrangement":
-            bProdWikiCat["arrangement"] = true;
-            break;
-          case "illust":
-          case "illustration":
-          case "PV":
-          case "movie":
-          case "video":
-          case "animation":
-            bProdWikiCat["visuals"] = true;
-            break;
-          case "mix":
-          case "master":
-          case "mastering":
-          case "instruments":
-          case "other":
-            bProdWikiCat["other"] = true;
-            break;
-          default:
-            bProdWikiCat["default"] = true;
-            break;
-        };
-      });
-      //console.log(bProdWikiCat);
-      if (bProdWikiCat["music"] || bProdWikiCat["default"]) {
-        strAutoloadCategories += "\n" + prodName + " songs list"
-      }
-      else {
-        if (bProdWikiCat["lyrics"]) {
-          strAutoloadCategories += "\n" + prodName + " songs list/Lyrics"
-        }
-        if (bProdWikiCat["tuning"]) {
-          strAutoloadCategories += "\n" + prodName + " songs list/Tuning"
-        }
-        if (bProdWikiCat["arrangement"]) {
-          strAutoloadCategories += "\n" + prodName + " songs list/Arrangement"
-        }
-        if (bProdWikiCat["visuals"]) {
-          strAutoloadCategories += "\n" + prodName + " songs list/Visuals"
-        }
-        if (bProdWikiCat["other"]) {
-          strAutoloadCategories += "\n" + prodName + " songs list/Other"
-        }
-      }
+  arrProducers.forEach(producer => {
+    prodName = producer.match(/\[\[[^\[\]]*\]\]/gm)[0];
+    strProdRoles = producer.replace(prodName + " ", "");
+    prodName = prodName.substring(2, prodName.length-2);
+    strProdRoles = strProdRoles.substring(1, strProdRoles.length-1);
+    arrProdRoles = strProdRoles.split(",");
+    bProdWikiCat = {"music":false,"lyrics":false,"tuning":false,"arrangement":false,"visuals":false,"other":false,"default":false};
+    arrProdRoles.forEach(prodRole => {
+      switch(prodRole.trim()) {
+        case "music":
+          bProdWikiCat["music"] = true;
+          break;
+        case "lyrics":
+          bProdWikiCat["lyrics"] = true;
+          break;
+        case "tuning":
+          bProdWikiCat["tuning"] = true;
+          break;
+        case "arrange":
+        case "arrangement":
+          bProdWikiCat["arrangement"] = true;
+          break;
+        case "illust":
+        case "illustration":
+        case "PV":
+        case "movie":
+        case "video":
+        case "animation":
+          bProdWikiCat["visuals"] = true;
+          break;
+        case "mix":
+        case "master":
+        case "mastering":
+        case "instruments":
+        case "other":
+          bProdWikiCat["other"] = true;
+          break;
+        default:
+          bProdWikiCat["default"] = true;
+          break;
+      };
     });
-  }
+    //console.log(bProdWikiCat);
+    if (bProdWikiCat["music"] || bProdWikiCat["default"]) {
+      strAutoloadCategories += "\n" + prodName + " songs list"
+    }
+    else {
+      if (bProdWikiCat["lyrics"]) {
+        strAutoloadCategories += "\n" + prodName + " songs list/Lyrics"
+      }
+      if (bProdWikiCat["tuning"]) {
+        strAutoloadCategories += "\n" + prodName + " songs list/Tuning"
+      }
+      if (bProdWikiCat["arrangement"]) {
+        strAutoloadCategories += "\n" + prodName + " songs list/Arrangement"
+      }
+      if (bProdWikiCat["visuals"]) {
+        strAutoloadCategories += "\n" + prodName + " songs list/Visuals"
+      }
+      if (bProdWikiCat["other"]) {
+        strAutoloadCategories += "\n" + prodName + " songs list/Other"
+      }
+    }
+  });
 
   //Categories: Album-only songs
   let bSongIsAlbumOnly = document.getElementById("albumonly").checked;
