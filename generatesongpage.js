@@ -571,10 +571,13 @@ function autoloadCategories() {
       break;
     case 2:
       strAutoloadCategories += "\n" + "Duet original songs";
+      break;
     case 3:
       strAutoloadCategories += "\n" + "Trios original songs";
+      break;
     default:
       strAutoloadCategories += "\n" + "Group rendition original songs";
+      break;
   };
 
   //Categories: Producers
