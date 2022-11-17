@@ -1,7 +1,7 @@
 /*
  * Show code history at footer of each site
  */
-const version_history = "2.2.4";
+const version_history = "2.2.5";
 const update_code = "CDB014"
 
 /*

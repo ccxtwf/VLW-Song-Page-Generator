@@ -118,8 +118,8 @@ function generateSongPage() {
   strSongPage += generateInfoBox();
   strSongPage += "\n\n" + generateLyrics();
   strSongPage += "\n\n" + generateExternalLinks();
-  strSongPage += "\n";
-  strSongPage += "__NOTOC__\n";
+  strSongPage += "\n\n";
+  //strSongPage += "__NOTOC__\n";
   strSongPage += generateListOfCategories();
   
   $("#output").html(strSongPage);
@@ -534,7 +534,7 @@ function autoloadCategories() {
   let bProdWikiCat = {};
 
   //Initialize
-  let strAutoloadCategories = "Songs";
+  let strAutoloadCategories = "";
 
   //Categories: Language
   determineLanguages();
@@ -660,7 +660,7 @@ function autoloadCategories() {
     }
   }
   
-  $("#categories").val(strAutoloadCategories);
+  $("#categories").val(strAutoloadCategories.trim());
 
 }
 
