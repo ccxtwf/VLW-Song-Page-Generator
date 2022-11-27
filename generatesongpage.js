@@ -112,9 +112,9 @@ function generateSongPage() {
   
 
   let strSongPage = ""
+  strSongPage += sortTemplate
   if (document.getElementById("unavailable").checked) {strSongPage += "{{Unavailable}}"};
   strSongPage += generateContentWarnings();
-  strSongPage += sortTemplate
   strSongPage += generateInfoBox();
   strSongPage += "\n\n" + generateLyrics();
   strSongPage += "\n\n" + generateExternalLinks();

@@ -127,7 +127,7 @@ function check_form_for_errors() {
 
     //Main alias is empty
     if (read_text("mainalias") == "") {
-        arrStrError.push("You must add a main alias for the producer.");
+        arrStrError.push("You must add the producer category page name for the producer. (This will be used as the parameter of {{ProdLinks}})");
         $("#mainalias").parent().toggleClass("error",true);
     }
 
@@ -219,8 +219,7 @@ function generateProducerPage() {
 
     let strAffliations = "";
     let strProducerLinks = "";
-    let strProducerCategoryNavigation = `==Producer categories==
-{{ProdLinks|catname = $_MAINCAT|album =$_cat_album|lyrics =$_cat_lyrics|arrangement =$_cat_arrange|tuning =$_cat_tuning|other =$_cat_other|visuals =$_cat_visuals}}`;
+    let strProducerCategoryNavigation = "==Producer categories==\n{{ProdLinks|catname = $_MAINCAT}}";
     let strLinksTemplate = `{{links |p=yes
    |atmiku = $_MIKUWIKI_SITEID
    |atutau = $_UTAUDB_SITEID
@@ -244,15 +243,6 @@ function generateProducerPage() {
     };
 
     //Set the producer category navigation
-    let list_subcat_checkbox = ["cat_album", "cat_lyrics", "cat_arrange", "cat_tuning", "cat_other", "cat_visuals"];
-    list_subcat_checkbox.forEach(checkbox => {
-        if (document.getElementById(checkbox).checked) {
-            strProducerCategoryNavigation = strProducerCategoryNavigation.replace("$_" + checkbox, "1");
-        }
-        else {
-            strProducerCategoryNavigation = strProducerCategoryNavigation.replace("$_" + checkbox, "");
-        }
-    });
     strProducerCategoryNavigation = strProducerCategoryNavigation.replace("$_MAINCAT", mainalias.replace(" ", "_"));
     strProducerCategoryNavigation += "\n\n"
 

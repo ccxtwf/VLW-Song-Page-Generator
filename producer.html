@@ -204,8 +204,8 @@ table.error, tr.error, td.error {
     <td colspan="3"><hr></td>
   </tr>
   <tr>
-    <td class="caption center">Producer's main alias:</td>
-    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">The producer's main alias<br>This main alias will be used for the name of the producer's songs list category on the wiki<hr>(required)</span></span></td>
+    <td class="caption center">Main producer category:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">This will be used as the parameter of the {{ProdLinks}} template on the producer page, and represents the producer's songs list category on the wiki<hr>(required)</span></span></td>
     <td class=div>
       <div class="ui input"><input type="text" placeholder="..." id="mainalias" size="82" form="producerpageform" /></div>
     </td>
@@ -251,7 +251,7 @@ table.error, tr.error, td.error {
         <table width=650pt id=producerroles></table>
     </td>
   </tr>
-  <tr>
+  <tr id="catnav">
     <td class="caption center">Category Navigation:</td>
     <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Category navigation for the wiki</span></span></td>
     <td class="div">
@@ -502,6 +502,7 @@ $("#miscaliasrow").hide();
 $("#vocadbloader").hide();
 $("#error").hide();
 $("#thumbrow").hide();
+$("#catnav").hide();
 
 </script>
 </body>

@@ -1,8 +1,8 @@
 /*
  * Show code history at footer of each site
  */
-const version_history = "2.2.5";
-const update_code = "CDB014"
+const version_history = "2.2.6";
+const update_code = "CDDXMAS"
 
 /*
  * Stores shared arrays and functions
@@ -318,7 +318,7 @@ const months =
 const listofsynthengines = 
     [
     "VOCALOID", "UTAU", "CeVIO", "Synthesizer V", 
-    "A.I.Voice", "ACE Virtual Singer", "AISingers", "Alter/Ego", "AquesTone/AquesTalk", 
+    "A.I.VOICE", "ACE Virtual Singer", "AISingers", "Alter/Ego", "AquesTone/AquesTalk", 
     "Chipspeech", "CoeFont", "DeepVocal", "EmVoice", "MUTA", "NEUTRINO", "NIAONiao", 
     "NNSVS", "Piapro Studio", "Renoid", "Sharpkey", "Sinsy", "VOCALINA", "VOICEROID", 
     "Voidol", "VOICEVOX", "VoiSona", "X Studio Singer"
