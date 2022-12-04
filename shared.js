@@ -343,7 +343,7 @@ function read_textbox(fieldname) {
 * Return whether or not a string is a valid CSS colour.
 */
 function validate_colour(colour) {
-    return colour == "" || colour.match("^#[0-9a-f]{6}$") || Object.keys(colournames).includes(colour);
+    return colour == "" || colour.match("^#[0-9a-fA-F]{6}$") || Object.keys(colournames).includes(colour);
 }
 
 /*
