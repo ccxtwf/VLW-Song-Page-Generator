@@ -77,7 +77,7 @@ let albumPageTable = jspreadsheet(document.getElementById("albumpagelist"));
     }
     if (pos_row == 2) {strHTML += "</tr>\n"}
   }
-  console.log(strHTML);
+  //console.log(strHTML);
   htmltable_role.html(strHTML);
 }
 
@@ -108,6 +108,9 @@ vsl.dropdown();
 function more_resets()
 {
   document.getElementById("producerpageform").reset();
+  //Reset dropdown box (Semantic UI)
+  $("#languagelist").dropdown("restore defaults");
+  $("#featuredsynth").dropdown("restore defaults");
   error_resets();
   //Clear custom spreadsheet tables
   extLinksTable.setData([...Array(5)].map(e => ["","",false,false,false]));
@@ -143,15 +146,13 @@ function more_resets()
 }
 
 /*
- * Prepare to import from VocaDB
+ * Prepare to import from VocaDB or query from wiki API
  */
- function prepareImportVocaDB() {
-  $('#vocadbloader').addClass('active');
-  setTimeout(function(){
-    more_resets();
-    importFromVocaDB();
-    $('#vocadbloader').removeClass('active');
-  }, 200);
+async function prepareToCall(callFunction, bool_reset = false) {
+  $('#loaderdimmer').addClass('active');
+  $('#loader').addClass('active');
+  if (bool_reset) {more_resets();}
+  await callFunction();
 }
 
 /*
@@ -176,21 +177,21 @@ table.error, tr.error, td.error {
 </style>
 </head>
 <body>
-<h1>Producer page generator for <a href="https://vocaloidlyrics.fandom.com/wiki/Vocaloid_Lyrics_Wiki:Producer_Article_Guideline" target="_blank" rel="noopener noreferrer">Vocaloid Lyrics Wiki</a></h1>
+<h1>Producer page generator for <a href="https://vocaloidlyrics.fandom.com/wiki/Vocaloid_Lyrics_Wiki:Producer_Article_Guideline" target="_blank" rel="noopener noreferrer">Vocaloid Lyrics Wiki</a></h1><hr>
 <form onSubmit="return false;" id="producerpageform"></form>
-<table width=100%>
+<table width=100% class="form">
   <tr>
     <td class="caption center" width=15%>Pre-load from VocaDB page:</td>
     <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Input URL to VocaDB producer/artist page here.<br>e.g. <a href="https://vocadb.net/Ar/28" target="_blank" rel="noopener noreferrer" style="color: azure">https://vocadb.net/Ar/28</a> Pinocchio-P</span></span></td>
     <td class="div">
       <div class="ui input"><input type="text" placeholder="https://vocadb.net/Ar/..." id=preloadfromurl size="70" /></div>
-      <button class="ui button" onclick="if (confirm('This will clear all inputted data. Continue?')) {prepareImportVocaDB();}">Preload</button>
+      <button class="ui button" onclick="if (confirm('This will clear all inputted data. Continue?')) {prepareToCall(importFromVocaDB, true);}">Preload</button>
     </td>
   </tr>
   <tr>
     <td></td>
     <td></td>
-    <td><div class="ui loader" id="vocadbloader"></div></td>
+    <td><div class="ui page dimmer" id="loaderdimmer"><div class="ui large text loader" id="loader">Loading</div></div></td>
   </tr>
   <tr>
     <td colspan="3"><hr></td>
@@ -205,14 +206,15 @@ table.error, tr.error, td.error {
   </tr>
   <tr>
     <td class="caption center">Main producer category:</td>
-    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">This will be used as the parameter of the {{ProdLinks}} template on the producer page, and represents the producer's songs list category on the wiki<hr>(required)</span></span></td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">This will be used as the parameter of the {{ProdLinks}} template on the producer page, which will link to the producer's songs list category on the wiki<br>Click on the "Query List of Pages from Wiki" button to get this site to query the list of song & album pages from the producer category on Vocaloid Lyrics Wiki.<hr>(required)</span></span></td>
     <td class=div>
-      <div class="ui input"><input type="text" placeholder="..." id="mainalias" size="82" form="producerpageform" /></div>
+      <div class="ui input"><input type="text" placeholder="..." id="mainalias" size="55" form="producerpageform" /></div>
+      <button form="producerpageform" class="compact small ui button" onclick="if (confirm('This will clear the data in the discography and album tables. Continue?')) {prepareToCall(queryFromWiki);}">Query List of Pages from Wiki</button>
     </td>
   </tr>
   <tr id="miscaliasrow">
     <td class="caption center">Producer's other aliases:</td>
-    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">The producer's other aliases, if exists</span></span></td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">The producer's other aliases, if exists. List each item using a semi-colon (;)<br>This will be used for the {{pwt alias}} template.</span></span></td>
     <td class=div>
       <div class="ui input"><input type="text" placeholder="..." id="miscalias" size="82" form="producerpageform" /></div>
     </td>
@@ -346,10 +348,10 @@ table.error, tr.error, td.error {
     <td class="caption">Song page list:</td>
     <td class="tooltip"><span class="info">&#x1F6C8;<span class="tooltip">Add the list of song pages <b>(that exist on Vocaloid Lyrics wiki)</b> here.<hr>(required)</span></span></td>
     <td class=div>
-        <span class="pagelist">You can get the list of song pages easily using the <a href="https://vocaloidlyrics.fandom.com/wiki/Special:CategoryTree" target="_blank" rel="noopener noreferrer">Category Tree tool in Vocaloid Lyrics wiki</a>. See <a href="https://vocaloidlyrics.fandom.com/wiki/Special:CategoryTree?target=Category%3APinocchio-P+songs+list&mode=pages&namespaces=" target="_blank" rel="noopener noreferrer">this example for Pinocchio-P</a>.</span><br /><br />
         <table><tr><td>
         <div id="songpagelist" tabindex="1" class="jexcel_container">    </div>
         </tr></td></table>
+        <br><span class="pagelist">Use the "Query List of Pages from Wiki" to get the song & album pages that have been tagged in Vocaloid Lyrics wiki.<br><br>Alternatively, you can use the <a href="https://vocaloidlyrics.fandom.com/wiki/Special:CategoryTree" target="_blank" rel="noopener noreferrer">Category Tree tool in Vocaloid Lyrics wiki</a> to manually get the list of song & album pages. See <a href="https://vocaloidlyrics.fandom.com/wiki/Special:CategoryTree?target=Category%3APinocchio-P+songs+list&mode=pages&namespaces=" target="_blank" rel="noopener noreferrer">this example for Pinocchio-P</a>.<br>Do note that the Category Tree tool can only query a maximum of 200 pages per category.</span>
     </td>
   </tr>
   <tr>
@@ -359,10 +361,10 @@ table.error, tr.error, td.error {
     <td class="caption">Discography:</td>
     <td class="tooltip"><span class="info">&#x1F6C8;<span class="tooltip">Add the list of album pages <b>(that exist on Vocaloid Lyrics wiki)</b> here.</span></span></td>
     <td class=div>
-        <span class="pagelist">You can get the list of album pages easily using the <a href="https://vocaloidlyrics.fandom.com/wiki/Special:CategoryTree" target="_blank" rel="noopener noreferrer">Category Tree tool in Vocaloid Lyrics wiki</a>. See <a href="https://vocaloidlyrics.fandom.com/wiki/Special:CategoryTree?target=Category%3APinocchio-P+songs+list&mode=pages&namespaces=" target="_blank" rel="noopener noreferrer">this example for Pinocchio-P</a>.</span><br /><br />
         <table><tr><td>
         <div id="albumpagelist" tabindex="1" class="jexcel_container">    </div>
         </tr></td></table>
+        <br><span class="pagelist">Use the "Query List of Pages from Wiki" to get the song & album pages that have been tagged in Vocaloid Lyrics wiki.<br><br>Alternatively, you can use the <a href="https://vocaloidlyrics.fandom.com/wiki/Special:CategoryTree" target="_blank" rel="noopener noreferrer">Category Tree tool in Vocaloid Lyrics wiki</a> to manually get the list of song & album pages. See <a href="https://vocaloidlyrics.fandom.com/wiki/Special:CategoryTree?target=Category%3APinocchio-P+songs+list&mode=pages&namespaces=" target="_blank" rel="noopener noreferrer">this example for Pinocchio-P</a>.<br>Do note that the Category Tree tool can only query a maximum of 200 pages per category.</span>
     </td>
   </tr>
   <tr>
@@ -470,6 +472,7 @@ songPageTable = jspreadsheet(document.getElementById("songpagelist"), {
   colAlignments: ["left", "left"],
   columnSorting: true,
   rowDrag: true,
+  wordWrap: true,
   allowInsertRow: true,
   allowManualInsertRow: true,
   allowInsertColumn: false,
@@ -489,6 +492,7 @@ albumPageTable = jspreadsheet(document.getElementById("albumpagelist"), {
   colAlignments: ["left", "left"],
   columnSorting: true,
   rowDrag: true,
+  wordWrap: true,
   allowInsertRow: true,
   allowManualInsertRow: true,
   allowInsertColumn: false,
@@ -498,8 +502,7 @@ albumPageTable = jspreadsheet(document.getElementById("albumpagelist"), {
   allowRenameColumn: false
 });
 
-$("#miscaliasrow").hide();
-$("#vocadbloader").hide();
+//$("#loader").hide();
 $("#error").hide();
 $("#thumbrow").hide();
 $("#catnav").hide();

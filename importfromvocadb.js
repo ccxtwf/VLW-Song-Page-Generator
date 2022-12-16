@@ -35,6 +35,8 @@ async function importFromVocaDB() {
         try {
             vocadbid = getVocaDBID(siteurl);
         } catch (error) {
+            await $('#loaderdimmer').removeClass('active');
+            await $('#loader').removeClass('active');
             console.error(error.name);
             console.error(error.message);
             window.alert("Unexpected error: Please recheck given URL");
@@ -44,6 +46,8 @@ async function importFromVocaDB() {
         try {
             vocadbjson = await getJSonData(urlquery);
         } catch (error) {
+            await $('#loaderdimmer').removeClass('active');
+            await $('#loader').removeClass('active');
             window.alert("Unexpected error: Unable to fetch data from VocaDB Rest API" + "\n\n" + error);
             return;
         }
@@ -170,10 +174,14 @@ async function importFromVocaDB() {
         });
 
         //Give alert to end user
+        await $('#loaderdimmer').removeClass('active');
+        await $('#loader').removeClass('active');
         window.alert("Loaded successfully");
 
     }
     else {
+        await $('#loaderdimmer').removeClass('active');
+        await $('#loader').removeClass('active');
         window.alert("URL must be from a VocaDB song page and start with 'https://vocadb.net/S/'");
     }
 }
@@ -304,7 +312,7 @@ async function getJSonData(urlquery) {
         return await res.json();
     } catch (error) {
         console.log(error);
-        throw "Error: unable to obtain requested information";
+        throw error;
     }
 }
 

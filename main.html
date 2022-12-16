@@ -241,13 +241,11 @@ function copyOutputToClipboard() {
 /*
  * Prepare to import from VocaDB
  */
-function prepareImportVocaDB() {
-  $('#vocadbloader').addClass('active');
-  setTimeout(function(){
-    more_resets();
-    importFromVocaDB();
-    $('#vocadbloader').removeClass('active');
-  }, 200);
+ async function prepareToCall(callFunction, bool_reset = false) {
+  $('#loaderdimmer').addClass('active');
+  $('#loader').addClass('active');
+  if (bool_reset) {more_resets();}
+  await callFunction();
 }
 
 </script>
@@ -258,19 +256,19 @@ function prepareImportVocaDB() {
 
 <form id="songpageform" onsubmit="return false;"></form>
 
-<table width=100%>
+<table width=100% class="form">
   <tr>
     <td class="caption center" width=15%>Pre-load from VocaDB page:</td>
     <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Input the URL to the VocaDB song page here.<br>e.g. <a href="https://vocadb.net/S/1501" target="_blank" rel="noopener noreferrer" style="color: azure">https://vocadb.net/S/1501</a> Rolling Girl</span></span></td>
     <td class=div>
       <div class="ui input"><input type="text" placeholder="https://vocadb.net/S/..." id="preloadfromurl" size="70" /></div>
-      <button class="ui button" onclick="if (confirm('This will clear all inputted data. Continue?')) {prepareImportVocaDB()}">Preload</button>
+      <button class="ui button" onclick="if (confirm('This will clear all inputted data. Continue?')) {prepareToCall(importFromVocaDB, true)}">Preload</button>
     </td>
   </tr>
   <tr>
     <td></td>
     <td></td>
-    <td><div class="ui loader" id="vocadbloader"></div></td>
+    <td><div class="ui page dimmer" id="loaderdimmer"><div class="ui large text loader" id="loader">Loading</div></div></td>
   </tr>
   <tr>
     <td colspan="3"><hr></td>

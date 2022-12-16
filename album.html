@@ -117,13 +117,11 @@ vsl.dropdown();
 /*
  * Prepare to import from VocaDB
  */
- function prepareImportVocaDB() {
-  $('#vocadbloader').addClass('active');
-  setTimeout(function(){
-    more_resets();
-    importFromVocaDB();
-    $('#vocadbloader').removeClass('active');
-  }, 200);
+ async function prepareToCall(callFunction, bool_reset = false) {
+  $('#loaderdimmer').addClass('active');
+  $('#loader').addClass('active');
+  if (bool_reset) {more_resets();}
+  await callFunction();
 }
 
 /*
@@ -140,19 +138,19 @@ function copyOutputToClipboard() {
 <body>
 <h1>Album page generator for <a href="https://vocaloidlyrics.fandom.com/wiki/Vocaloid_Lyrics_Wiki:Album_Article_Guideline" target="_blank" rel="noopener noreferrer">Vocaloid Lyrics Wiki</a></h1>
 <form onSubmit="return false;" id="albumpageform"></form>
-<table width=100%>
+<table width=100% class="form">
   <tr>
     <td class="caption center" width=15%>Pre-load from VocaDB page:</td>
     <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Input URL to VocaDB album page here.<br>e.g. <a href="https://vocadb.net/Al/21149" target="_blank" rel="noopener noreferrer" style="color: azure">https://vocadb.net/Al/21149</a> Comic and Cosmic</span></span></td>
     <td class="div">
       <div class="ui input"><input type="text" placeholder="https://vocadb.net/Al/..." id=preloadfromurl size="70" /></div>
-      <button class="ui button" onclick="if (confirm('This will clear all inputted data. Continue?')) {prepareImportVocaDB();}">Preload</button>
+      <button class="ui button" onclick="if (confirm('This will clear all inputted data. Continue?')) {prepareToCall(importFromVocaDB, true);}">Preload</button>
     </td>
   </tr>
   <tr>
     <td></td>
     <td></td>
-    <td><div class="ui loader" id="vocadbloader"></div></td>
+    <td><div class="ui page dimmer" id="loaderdimmer"><div class="ui large text loader" id="loader">Loading</div></div></td>
   </tr>
   <tr>
     <td colspan="3"><hr></td>
@@ -428,7 +426,6 @@ extLinksTable = jspreadsheet(document.getElementById("extlinks"), {
   onchange: extLinkChanged
 });
 
-$("#vocadbloader").hide();
 $("#error").hide();
 $("#thumbrow").hide();
 

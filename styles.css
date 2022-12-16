@@ -94,4 +94,14 @@ color:red;
 .footer {
 font-size: 8pt; 
 vertical-align: top;
+padding-left:10px;
+padding-right:10px;
+}
+table.form {
+padding-left: 10px;
+}
+h1 {
+padding-top:10px; 
+padding-bottom:20px; 
+padding-left:10px;
 }

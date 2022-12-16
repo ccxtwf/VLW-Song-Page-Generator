@@ -2,6 +2,8 @@
 
 const list_roles = ["composer", "lyricist", "tuner", "illustrator", "animator", "arranger", "instrumentalist", "mixer", "masterer"];
 
+const wiki_domain = "vocaloidlyrics";
+
 //Declaration to local JSon file
 let listofvocaloid;
 fetch("listofvocaloid.json")
@@ -34,6 +36,8 @@ async function importFromVocaDB() {
         try {
             vocadbid = getVocaDBID(siteurl);
         } catch (error) {
+            await $('#loaderdimmer').removeClass('active');
+            await $('#loader').removeClass('active');
             console.error(error.name);
             console.error(error.message);
             window.alert("Unexpected error: Please recheck given URL");
@@ -43,6 +47,8 @@ async function importFromVocaDB() {
         try {
             vocadbjson = await getJSonData(urlquery);
         } catch (error) {
+            await $('#loaderdimmer').removeClass('active');
+            await $('#loader').removeClass('active');
             window.alert("Unexpected error: Unable to fetch data from VocaDB Rest API" + "\n\n" + error);
             return;
         }
@@ -106,10 +112,14 @@ async function importFromVocaDB() {
         $("#thumbrow").show();
 
         //Give alert to end user
+        await $('#loaderdimmer').removeClass('active');
+        await $('#loader').removeClass('active');
         window.alert("Loaded successfully");
 
     }
     else {
+        await $('#loaderdimmer').removeClass('active');
+        await $('#loader').removeClass('active');
         window.alert("URL must be from a VocaDB artist page and start with 'https://vocadb.net/Ar/'");
     }
 }
@@ -210,6 +220,7 @@ function generateProducerPage() {
 
     //Read data
     let mainalias = read_text("mainalias");
+    let miscalias = read_text("miscalias");
     let affliations_raw = read_text("affliations");
     let labels_raw = read_text("labels");
     let description = read_text("description");
@@ -219,7 +230,7 @@ function generateProducerPage() {
 
     let strAffliations = "";
     let strProducerLinks = "";
-    let strProducerCategoryNavigation = "==Producer categories==\n{{ProdLinks|catname = $_MAINCAT}}";
+    let strProducerCategoryNavigation = "==Producer categories==\n{{ProdLinks|$_MAINCAT}}";
     let strLinksTemplate = `{{links |p=yes
    |atmiku = $_MIKUWIKI_SITEID
    |atutau = $_UTAUDB_SITEID
@@ -262,7 +273,7 @@ function generateProducerPage() {
             strAffliations += "*" + affliation + "\n"
         });
     };
-    if (strAffliations !== "") {strAffliations += "\n\n"}
+    if (strAffliations !== "") {strAffliations += "\n"}
 
     //Set the producer links
     let arrOfficialLinks = extlinksdata.filter( extlink => {
@@ -353,11 +364,18 @@ function generateProducerPage() {
     }
 
     //Set the song page list
-    strSongPageList += "==Works==\n{| class=\"sortable producer-table\"\n|- class=\"vcolor-default\"\n! {{pwt head}}\n";
+    let add_params = "";
+    strSongPageList += "==Works==\n";
+    strSongPageList += miscalias == "" ? "" : "{{pwt alias|" + miscalias + "}}\n";
+    strSongPageList += "{| class=\"sortable producer-table\"\n|- class=\"vcolor-default\"\n! {{pwt head}}\n";
     songpagelistdata.forEach(songpage => {
         strSongPageList += "|-\n";
         strSongPageList += "| {{pwt row|" + songpage[0].trim();
-        if (songpage[1].trim() !== "") {strSongPageList += "|" + songpage[1].trim();};
+        add_params = songpage[1].trim();
+        if (add_params !== "") {
+            strSongPageList += add_params.match(/^\|/) ? "" : "|";
+            strSongPageList += add_params;
+        };
         strSongPageList += "}}\n";
     })
     strSongPageList += "|}"
@@ -369,7 +387,11 @@ function generateProducerPage() {
         albumpagelistdata.forEach(albumpage => {
             strAlbumPageList += "|-\n";
             strAlbumPageList += "| {{awt row|" + albumpage[0].trim();
-            if (albumpage[1].trim() !== "") {strAlbumPageList += "|" + albumpage[1].trim();};
+            add_params = albumpage[1].trim();
+            if (add_params !== "") {
+                add_params.match(/^\|/) ? "" : "|";
+                strAlbumPageList += add_params;
+            };
             strAlbumPageList += "}}\n";
         })
         strAlbumPageList += "|}";
@@ -437,7 +459,123 @@ function listLinksInWikitextFormat(arrLinks, bLinksAreOfficial) {
   
     return strWikiExternalLinks;
   
-  }
+}
+
+async function getListOfSongsFromWiki(producer_name) {
+
+    let urlquery = "";
+    let wikijson = "";
+    let wikijson_subcat = "";
+
+    let list_of_queried_items;
+    let list_of_page_titles = [];
+    let list_of_subcategories = [];
+    let list_of_albums = [];
+    let list_of_pages_in_subcat = [];
+
+    urlquery = "https://" + wiki_domain + ".fandom.com/api.php?action=query&format=json&list=categorymembers&cmtitle=Category:" + producer_name + "_songs_list&cmprop=title|sortkeyprefix&cmlimit=500&cmtype=page|subcat&cmsort=sortkey&cmdir=ascending&origin=*";
+    //urlquery = "https://vocaloidlyrics.fandom.com/api.php?action=query&format=json&generator=categorymembers&gcmtitle=Category:" + producer_name + "_songs_list&gcmtype=page|subcat&gcmlimit=500&prop=pageprops&gcmsort=sortkey&gcmdir=ascending&origin=*";
+    
+    try {
+        wikijson = await getJSonData(urlquery);
+    } catch (error) {
+        throw ("Error: Unable to obtain data from API. The error code is as shown:" + "\n\n" + error);
+    }
+
+    console.log(wikijson);
+
+    list_of_queried_items = wikijson.query.categorymembers;
+
+    if (!Array.isArray(list_of_queried_items) || list_of_queried_items.length == 0) {
+        throw ("Error: Cannot find any pages under the given producer name");
+    }
+
+    //console.log(list_of_queried_items);
+
+    list_of_page_titles = list_of_queried_items.filter(page => page.ns == 0);
+    list_of_page_titles = list_of_page_titles.map(function(page) {
+        page_title = unicodeToChar(page.title);
+        sortkey = page.sortkeyprefix;
+        sortkey = sortkey ? unicodeToChar(sortkey) : page_title;
+        return [page_title, sortkey];
+    });
+    //(list_of_page_titles);
+
+    list_of_subcategories = list_of_queried_items.filter(page => page.ns == 14);
+    list_of_subcategories = list_of_subcategories.map(function(page) {return unicodeToChar(page.title)});
+
+    album_subcat = "Category:" + producer_name + " songs list/Albums";
+    if (list_of_subcategories.includes(album_subcat)) {
+        list_of_subcategories = list_of_subcategories.filter(item => item !== album_subcat);
+        urlquery = "https://" + wiki_domain + ".fandom.com/api.php?action=query&format=json&list=categorymembers&cmtitle=" + album_subcat + "&cmprop=title|sortkeyprefix&cmlimit=500&cmtype=page&cmsort=sortkey&cmdir=ascending&origin=*";
+        try {
+            wikijson_subcat = await getJSonData(urlquery);
+        } catch (error) {
+            throw ("Unexpected error occured. The error code is as shown:" + "\n\n" + error);
+        };
+        list_of_albums = wikijson_subcat.query.categorymembers.map(function(page) {
+            return unicodeToChar(page.title);
+        });
+    };
+
+    for (let i=0; i<list_of_subcategories.length; i++) {
+        subcat = list_of_subcategories[i];
+        list_of_pages_in_subcat = [];
+
+        urlquery = "https://" + wiki_domain + ".fandom.com/api.php?action=query&format=json&list=categorymembers&cmtitle=" + subcat + "&cmprop=title|sortkeyprefix&cmlimit=500&cmtype=page&cmsort=sortkey&cmdir=ascending&origin=*";
+        try {
+            wikijson_subcat = await getJSonData(urlquery);
+        } catch (error) {
+            throw ("Unexpected error occured. The error code is as shown:" + "\n\n" + error);
+        };
+        list_of_queried_items = wikijson_subcat.query.categorymembers;
+        list_of_pages_in_subcat = list_of_queried_items.map(function(page) {
+            page_title = unicodeToChar(page.title);
+            sortkey = page.sortkeyprefix;
+            sortkey = sortkey ? unicodeToChar(sortkey) : page_title;
+            return [page_title, sortkey];
+        });
+
+        //console.log(list_of_pages_in_subcat);
+
+        list_of_page_titles.push(...list_of_pages_in_subcat.filter(item => 
+            !list_of_page_titles.map(item_2 => item_2[0]).includes(item[0]) 
+        ));
+    };
+
+    //Sort pages by sortkey (as stored in wiki)
+    list_of_page_titles.sort((a, b) => {
+        if (a[1] < b[1]) {return -1;}
+        if (a[1] > b[1]) {return 1;}
+        return 0;
+    });
+
+    return [
+        list_of_page_titles.map(item => item[0]),
+        list_of_albums
+    ];
+
+};
+
+async function queryFromWiki() {
+    producer_alias = read_text("mainalias");
+    try {
+        res = await getListOfSongsFromWiki(producer_alias);
+    } catch (error) {
+        await $('#loaderdimmer').removeClass('active');
+        await $('#loader').removeClass('active');
+        window.alert(error);
+        return;
+    };
+    await $('#loaderdimmer').removeClass('active');
+    await $('#loader').removeClass('active');
+    [list_of_page_titles, list_of_albums] = res;
+    //console.log(list_of_page_titles);
+    //console.log(list_of_albums);
+    songPageTable.setData(list_of_page_titles.map(item => [item, ""]));
+    albumPageTable.setData(list_of_albums.map(item => [item, ""]));
+    window.alert("Finished querying the list of pages from the Vocaloid Lyrics Wiki and copied them onto the tables.");
+}
 
 async function getJSonData(urlquery) {
     try {
