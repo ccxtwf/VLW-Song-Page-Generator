@@ -559,6 +559,7 @@ async function getListOfSongsFromWiki(producer_name) {
 
 async function queryFromWiki() {
     producer_alias = read_text("mainalias");
+    producer_alias = producer_alias.replace(/^(\w)/, w => w.toUpperCase());
     try {
         res = await getListOfSongsFromWiki(producer_alias);
     } catch (error) {
