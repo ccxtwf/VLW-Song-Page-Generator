@@ -1,8 +1,8 @@
 /*
  * Show code history at footer of each site
  */
-const version_history = "2.3.0";
-const update_date = "16 December 2022";
+const version_history = "2.4.0";
+const update_date = "1 January 2023";
 
 /*
  * Stores shared arrays and functions
@@ -439,7 +439,7 @@ function add_site_footer(bIsMainDoc = false) {
         str_html += `, based on earlier work by <a href="https://vocaloidlyrics.fandom.com/wiki/User:ElectricRaichu" target="_blank" rel="noopener noreferrer">ElectricRaichu</a> and <a href="https://vocaloidlyrics.fandom.com/wiki/User:Nefere" target="_blank" rel="noopener noreferrer">Nefere</a>`
     }
     str_html += `.<br>Powered by <a href="https://semantic-ui.com/" target="_blank" rel="noopener noreferrer">Semantic UI</a> and <a href="https://github.com/jspreadsheet/ce" target="_blank" rel="noopener noreferrer">JSpreadsheet</a><br><br>Github Repository: <a href="https://github.com/ccxtwf/VLW-Song-Page-Generator" target="_blank" rel="noopener noreferrer">VLW Song Page Generator</a><br>Re-use and modification permitted under the CC license.<br>Feel free to report any bugs/issues or ask for improvements to <a href="https://vocaloidlyrics.fandom.com/wiki/User:CoolMikeHatsune22" target="_blank" rel="noopener noreferrer">my VLW profile</a>.</p><p>v` + version_history + ` - Updated ` + update_date + `</p></td>
-<td width=50% class="footer" style="text-align: right;"><p>Navigation:<br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/main.html" target="_blank" rel="noopener noreferrer">Song Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/album.html" target="_blank" rel="noopener noreferrer">Album Page Generator (jank)</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/producer.html" target="_blank" rel="noopener noreferrer">Producer Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/lyricseditor.html" target="_blank" rel="noopener noreferrer">Advanced Lyrics Editing</a></p></td>
+<td width=50% class="footer" style="text-align: right;"><p>Navigation:<br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/main.html" target="_blank" rel="noopener noreferrer">Song Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/album.html" target="_blank" rel="noopener noreferrer">Album Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/producer.html" target="_blank" rel="noopener noreferrer">Producer Page Generator</a><br><a href="https://ccxtwf.github.io/VLW-Song-Page-Generator/lyricseditor.html" target="_blank" rel="noopener noreferrer">Advanced Lyrics Editing</a></p></td>
 </tr>`
     str_html += `<tr><td colspan="2" class="footer">If this page generator is not working correctly after a recent patch, then you might want to try <a href="https://its.uiowa.edu/support/article/719" target="_blank" rel="noopener noreferrer">clearing the cache</a> (NOT browser setting/history)</td></tr>`
     element_footer.innerHTML = str_html;

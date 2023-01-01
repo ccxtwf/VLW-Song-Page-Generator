@@ -52,6 +52,10 @@ function more_resets()
   $("#pagetitle").html("");
   $("#thumbrowinner").html("");
   $("#thumbrow").hide();
+  //Reset colour preview
+  $("table.colourpreview").css("background-color", "black");
+  $("table.colourpreview").css("color", "white");
+  $("table.colourpreview").css("border-color", "white");
 }
 
 /*
@@ -64,6 +68,7 @@ function more_resets()
     $("#description").parent(),
     $("#vocadbid").parent(),
     $("#tracklisttablecaption"),
+    $("#tracklist").parent(),
     $("#categories")
   ]
 
@@ -91,6 +96,11 @@ function more_resets()
       $("#" + id + "picker").val(setcolor);
     }
   }
+  if (id == "bgcolour") {$("table.colourpreview").css("background-color", setcolor)}
+  else {
+    $("table.colourpreview").css("color", setcolor);
+    $("table.colourpreview").css("border-color", setcolor);
+  };
 }
 
 /*
@@ -136,7 +146,7 @@ function copyOutputToClipboard() {
 <style></style>
 </head>
 <body>
-<h1>Album page generator for <a href="https://vocaloidlyrics.fandom.com/wiki/Vocaloid_Lyrics_Wiki:Album_Article_Guideline" target="_blank" rel="noopener noreferrer">Vocaloid Lyrics Wiki</a></h1>
+<h1>Album page generator for <a href="https://vocaloidlyrics.fandom.com/wiki/Vocaloid_Lyrics_Wiki:Album_Article_Guideline" target="_blank" rel="noopener noreferrer">Vocaloid Lyrics Wiki</a></h1><hr>
 <form onSubmit="return false;" id="albumpageform"></form>
 <table width=100% class="form">
   <tr>
@@ -181,12 +191,17 @@ function copyOutputToClipboard() {
     <td colspan="3"><hr></td>
   </tr>
   <tr>
-    <td class="caption center">Infobox bg/fg colour:</td>
-    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Infobox background (left) and foreground (right) colour<br>hexadecimal colour, e.g., #ff0000<br><em>or</em><br>colour name, e.g., red<hr>(required)</span></span></td>
+    <td class="caption center" rowspan=2>Infobox bg/fg colour:</td>
+    <td class="tooltip center" rowspan=2><span class="info">&#x1F6C8;<span class="tooltip">Infobox background (left) and foreground (right) colour<br>hexadecimal colour, e.g., #ff0000<br><em>or</em><br>colour name, e.g., red<hr>(required)</span></span></td>
+    <td>
+      <table class=colourpreview width=600pt><tr><td><b>Preview</b></td></tr></table>
+    </td>
+  </tr>
+  <tr>
     <td>
       <table width=800pt><tr>
         <td class="div" width=50%>
-          <div class="ui input"><input type="text" id="bgcolour" size="15" value="black" onchange="color_changed('bgcolour',false)"form="albumpageform"/></div>
+          <div class="ui input"><input type="text" id="bgcolour" size="15" value="black" onchange="color_changed('bgcolour',false)" form="albumpageform"/></div>
           <input type="color" id="bgcolourpicker" value="#000000" style="width:45px" onchange="color_changed('bgcolour',true)" form="albumpageform"/>
         </td>
         <td class="div" width=50%>
@@ -211,37 +226,28 @@ function copyOutputToClipboard() {
     </td>
   </tr>
   <tr>
-    <td colspan="3"><hr></td>
-  </tr>
-  <tr>
-    <td class="caption">Featuring vocal synths:</td>
-    <td class="tooltip"><span class="info">&#x1F6C8;<span class="tooltip">List of featured vocal synths, separated by semi-colon (;).<br>e.g.: Kagamine Rin; Kagamine Len<hr>This will allow the tool to generate a category for each listed vocal synth.</span></span></td>
-    <td class="div"><textarea id="singer" cols="88" rows="3" form="albumpageform"></textarea></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td></td>
+    <td class="caption center">Synth Engines:</td>
+    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Needed to generate synth category tags.<hr>(required)</span></span></td>
     <td class="div">
       <div class="ui scrolling multiple search dropdown" id="featuredsynth" style="width:500pt; font-size:10pt;" form="albumpageform"></div>
     </td>
   </tr>
   <tr>
-    <td class="caption">Producer(s):</td>
-    <td class="tooltip"><span class="info">&#x1F6C8;<span class="tooltip">List of featured producer(s), separated by semi-colon (;).<br>e.g.: wowaka; Pinocchio-P<hr>This will allow the tool to generate a category for each listed producer.</span></span></td>
-    <td class="div"><textarea id="producers" cols="88" rows="5" form="albumpageform"></textarea></td>
-  </tr>
-  <tr>
     <td colspan="3"><hr></td>
   </tr>
   <tr>
-    <td colspan="3" class=caption style="font-size: 18pt; text-align: center;" id="tracklisttablecaption">Tracklist  <span class="info">&#x1F6C8;<span class="tooltip" style="text-align: left;">Add tracklist information here.<br>Track names should follow the naming convention of song articles (e.g. "すろぉもぉしょん (Slow Motion)").<br>If a song page exists on Vocaloid Lyrics wiki then the URL of that page should be inputted into the table.<br>Markup to featured producers and singers should only be added for the first mention of that artist/synth.<br><br>Add, delete, or drag rows as you please<hr>(required)</span></span></td>
+    <td colspan="3" class=caption style="font-size: 18pt; text-align: center;" id="tracklisttablecaption">Tracklist  <span class="info">&#x1F6C8;<span class="tooltip" style="text-align: left;">Add tracklist information here.<br>Track names should follow the naming convention of song articles (e.g. "すろぉもぉしょん (Slow Motion)").<br>If a song page exists on Vocaloid Lyrics wiki then you can copy and paste the URL to that song page to the cell in the third column ("Track name / VLW Page Title"). The site will automatically detect the page title in this scenario.<br>Markup to featured producers and singers should only be added for the first mention of that artist/synth.<br><br>Add, delete, or drag rows as you please<hr>(required)</span></span></td>
   </tr>
   <tr>
     <td colspan="3">
       <table width=100%>
         <tr>
         <td width="50px"> </td>
-        <td><div id=tracklist tabindex="1" class="jexcel_container">    </div></td>
+        <td>
+          <table><tr><td>
+            <div id=tracklist tabindex="1" class="jexcel_container">    </div>
+          </td></tr></table>
+        </td>
         </tr>
       </table>
     </td>
@@ -340,25 +346,20 @@ add_site_footer();
 //Event handling for tracklist input table: automatically detect the page name in the given VLW page URL
 let trackListChanged = function(instance, cell, col, row, value) {
   try {
-    if (col==3 && value.trim() !== "") {
-      let siteurl = value;
-      let pagename = detagHref(siteurl);
+    if (col==2 && value.trim() !== "") {
+      let pagename = value;
       let tryRegex = [];
-      tryRegex = pagename.match(/(?<=^https?:\/\/vocaloidlyrics\.fandom\.com\/wiki\/).*/);
+      tryRegex = pagename.match(/^https?:\/\/vocaloidlyrics\.fandom\.com\/wiki\/(.*)$/);
       if (Array.isArray(tryRegex) && tryRegex.length) {
-        pagename = tryRegex[0];
-        tryRegex = pagename.match(/^.*(?=\/)/);
-        if (Array.isArray(tryRegex) && tryRegex.length) {pagename = tryRegex[0];}
-        pagename = pagename.replace(/_/g, " ");
-        pagename = decodeURI(pagename);
-        trackListTable.setValueFromCoords(col-1, row, pagename);
+        pagename = tryRegex[1];
+        pagename = pagename.replace(/\?(action|so)=.*$/, "");
+        try_match = pagename.match(/^(.*)\/[^\/]*$/);
+        if (try_match) {pagename += "|" + try_match[1];}
+        pagename = "[[" + pagename + "]]";
       }
-
-      //console.log(siteurl, sitename);
-      if (siteurl.match(/^https?:\/\/.*/)) {
-        trackListTable.setValueFromCoords(col, row, "<a href=\"" + siteurl + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + siteurl + "</a>");
-      }
-      //console.log("Changed");
+      pagename = pagename.replace(/_/g, " ");
+      pagename = decodeURI(pagename);
+      trackListTable.setValueFromCoords(col, row, pagename);
     }
   }
   catch (error) {}
@@ -370,9 +371,9 @@ trackListTable = jspreadsheet(document.getElementById("tracklist"), {
   columns: [
     { type: "numeric", title: "Disk No.", width: 80 },
     { type: "numeric", title: "Track No.", width: 80 },
-    { type: "text", title: "Track name", width: 300 },
-    { type: "html", title: "VLW Page URL", width: 300 },
-    { type: "text", title: "Featured Producers & Singers", width: 300 }
+    { type: "text", title: "Track name / VLW Page Title", width: 300 },
+    { type: "text", title: "Featured Producers", width: 300 },
+    { type: "text", title: "Featured Singers", width: 300 }
   ],
   colAlignments: ["center", "center", "left", "left", "left"],
   columnSorting: true,

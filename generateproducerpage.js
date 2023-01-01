@@ -347,7 +347,7 @@ function generateProducerPage() {
     //Categories: Language
     let arrLanguages = [];
     arrLanguages = $("#languagelist").dropdown("get value").split(",");
-    arrLanguages = arrLanguages.map(function (lang) {return languages[lang].name});
+    arrLanguages = arrLanguages.map(function (lang) {return lang == "" ? "" : languages[lang].name});
     if (arrLanguages.length && arrLanguages[0] !== "") { 
         arrLanguages.forEach(lang => {
             if (lang == "Mandarin") {lang = "Chinese"};

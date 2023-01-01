@@ -84,8 +84,10 @@ color:red;
 outline: 2px inset darkred;
 box-shadow:none;
 }
-td.error {
-color:red;
+table.error, tr.error, td.error {
+background-color:#fff6f6;
+border: 2px inset darkred;
+border-style: groove;
 }
 .ui.message {
 background-color:#fff6f6;
@@ -104,4 +106,13 @@ h1 {
 padding-top:10px; 
 padding-bottom:20px; 
 padding-left:10px;
+}
+table.colourpreview {
+text-align: center; 
+padding: 5px; 
+border: 2.5px solid;
+border-radius: 20px; 
+background-color: black; 
+color:white;
+border-color: white;
 }

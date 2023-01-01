@@ -45,9 +45,7 @@ async function importFromVocaDB() {
     let extLinks = [];
     let tryRegex = [];
 
-    let setOfFeaturedSynths = new Set();
     let setOfFeaturedEngines = new Set();
-    let setOfFeaturedProducers = new Set();
 
     let siteurl = $("#preloadfromurl").val().trim();
     //console.log(siteurl);
@@ -79,59 +77,31 @@ async function importFromVocaDB() {
         transliteratedTitle = "";
 
         //Obtain published label, list of featured vocal synths, and list of producers
-        let artists = vocadbjson.artists;
-        let artistName = "";
-        let synthEngine = "";
-        artists.forEach(artist => {
-            switch(artist.categories) {
+        let labels = vocadbjson.artists.filter( artist => {
+            return artist.categories == "Label" || artist.categories == "Circle"
+        });
+        labels = labels.map(item => item.name);
+        let albumartists = vocadbjson.artists.filter( artist => {
+            return artist.categories == "Producer" && !artist.isSupport
+        });
+        albumartists = albumartists.map(item => item.name);
+        //console.log(labels);
+        //console.log(albumartists);
+        let bAlbumContainsMoreThanOneProducer = albumartists.length > 1;
 
-                case "Vocalist":
-                    try {
-                        lookupJSonEntry = listofvocaloid[artist.artist.id];
-                        //console.log(artist.artist.id);
-                        artistName = lookupJSonEntry.fullvoicebankname;
-                        synthEngine = lookupJSonEntry.synthgroup;
-                    }
-                    catch (error) {
-                        console.log(error);
-                        artistName = artist.name;
-                    }
-                    setOfFeaturedSynths.add(artistName);
-                    setOfFeaturedEngines.add(synthEngine);
-                    break;
-
-                case "Label":
-                case "Circle":
-                    label = addItemToListString(artist.name, label, ", ");
-                    break;
-
-                //Only list major producers
-                case "Producer":
-                    if (artist.effectiveRoles !== "Illustrator" && !artist.isSupport) {setOfFeaturedProducers.add(artist.name);};
-                    break;
-
-                default:
-                    break;
-            }
-        }); 
-        setOfFeaturedSynths.forEach( synth => {singers = addItemToListString(synth, singers, "; ");});
-        setOfFeaturedProducers.forEach( producer => {producers = addItemToListString(producer, producers, "; ");});
-
-        let checkofffeaturedsynth = new Set(setOfFeaturedSynths);
+        let checkofffeaturedsynth = new Set();
 
         //Obtain tracklist
         let tracks = vocadbjson.tracks;
         let diskno = 0;
         let trackno = 0;
         let trackName = "";
-        let trackArtists = [];
         let trackProdCredits = "";
         let trackVocCredits = "";
-        let trackCredits = "";
-        let trackVocalist = "";
+        let trackArtists = [];
         let artistname = "";
         let redirect = "";
-        let bAlbumContainsMoreThanOneProducer = setOfFeaturedProducers.size > 1;
+        let trackVocalist = "";
         tracks.forEach( track => {
             diskno = track.discNumber;
             trackno = track.trackNumber;
@@ -140,30 +110,33 @@ async function importFromVocaDB() {
             trackProdCredits = "";
             trackVocCredits = "";
             trackArtists.forEach( trackArtist => {
-                if (trackArtist.categories == "Vocalist") {
-                    try {
-                        trackVocalist = listofvocaloid[trackArtist.artist.id];
-                        artistname = trackVocalist.fullvoicebankname;
-                        redirect = trackVocalist.basevoicebankname;
-                        if (checkofffeaturedsynth.has(artistname)) {
-                            checkofffeaturedsynth.delete(artistname);
-                            if (artistname == redirect) {artistname = "[[" + artistname + "]]";}
-                            else {artistname = "[[" + artistname + "|" + redirect + "]]";};
+                switch (trackArtist.categories) {
+                    case "Vocalist":
+                        try {
+                            trackVocalist = listofvocaloid[trackArtist.artist.id];
+                            setOfFeaturedEngines.add(trackVocalist.synthgroup);
+                            artistname = trackVocalist.fullvoicebankname;
+                            redirect = trackVocalist.basevoicebankname;
+                            if (!checkofffeaturedsynth.has(artistname)) {
+                                checkofffeaturedsynth.add(artistname);
+                                if (artistname == redirect) {artistname = "[[" + artistname + "]]";}
+                                else {artistname = "[[" + artistname + "|" + redirect + "]]";};
+                            }
+                            else {artistname = redirect};
                         }
-                        else {artistname = redirect;};
-                    }
-                    catch (error) {artistname = trackArtist.name;};
-                    trackVocCredits = addItemToListString(artistname, trackVocCredits, ", ");
+                        catch (error) {artistname = trackArtist.name;};
+                        trackVocCredits = addItemToListString(artistname, trackVocCredits, ", ");
+                        break;
+                    case "Producer":
+                        if (bAlbumContainsMoreThanOneProducer) {trackProdCredits = addItemToListString(trackArtist.name, trackProdCredits, ", ")};
+                        break;
+                    default:
+                        //do nothing
+                        break;
                 }
-                else if (bAlbumContainsMoreThanOneProducer) {
-                    trackProdCredits = track.song.artistString;
-                    trackProdCredits = trackProdCredits.replace(/^(.*) feat\. .*$/, "$1");
-                };
-                if (trackVocCredits == "") {trackCredits = "Instrumental"}
-                else if (trackProdCredits == "") {trackCredits = trackVocCredits}
-                else {trackCredits = trackProdCredits + " feat. " + trackVocCredits};
-            })
-            trackList.push([diskno, trackno, trackName, "", trackCredits]);
+            });
+            if (trackVocCredits == "") {trackProdCredits += trackProdCredits == "" ? "Instrumental" : " (Instrumental)"};
+            trackList.push([diskno, trackno, trackName, trackProdCredits, trackVocCredits]);
         });
 
         //Obtain list of official & unofficial reference/web links
@@ -196,20 +169,12 @@ async function importFromVocaDB() {
             extLinks.push([weblink_url, weblink_site, bLinkIsOfficial]);
         });
 
-        if (setOfFeaturedProducers.size < 4) {
-            setOfFeaturedProducers.forEach( producer => {
-            description = addItemToListString(producer, description, ", ");
-            });
-            description = "an album by " + description;
-        }
-        else {
-            description = "an album featuring several producers";
-        }
+        description = albumartists.length < 4 ? "an album by " + albumartists.map(item => "[[" + item + "]]").join(", ") : "an album featuring several producers";
 
         //Write data to online form
         $("#originaltitle").val(originalTitle);
         $("#romajititle").val(transliteratedTitle);
-        $("#label").val(label);
+        $("#label").val(labels.join(", "));
         $("#singer").val(singers);
         $("#producers").val(producers);
         $("#description").val(description);
@@ -249,12 +214,45 @@ async function importFromVocaDB() {
 }
 
 function autoloadCategories() {
-    let strSynths = read_text("singer");
-    let strProducers = read_text("producers");
+
+    let arr_track_producers = trackListTable.getColumnData(3);
+    let arr_track_singers = trackListTable.getColumnData(4);
     let strVocalSynthGroups = $("#featuredsynth").dropdown("get value");
-    let arrSynths = strSynths.split(";");
-    let arrProducers = strProducers.split(";");
     let arrVocalSynthGroups = strVocalSynthGroups.split(",");
+    let str_description = read_text("description");
+    let arrSynths = [];
+    let arrProducers = [];
+
+    //Producers as listed in the tracklist
+    arr_track_producers.forEach( row => {
+        try_match = row.match(/(?<=\[\[)[^\[\]]*(?=\]\])/g);
+        if (Array.isArray(try_match) && try_match.length) {
+            try_match = try_match.map(item => item.replace(/\|.*$/, ""));
+            arrProducers.push(...try_match);
+        };
+    });
+    //Producers as listed in the description
+    try_match = str_description.match(/(?<=\[\[)[^\[\]]*(?=\]\])/g);
+    if (Array.isArray(try_match) && try_match.length) {
+        try_match = try_match.map(item => item.replace(/\|.*$/, ""));
+        arrProducers.push(...try_match);
+    };
+    //Singers as listed in the tracklist
+    arr_track_singers.forEach( row => {
+        try_match = row.match(/(?<=\[\[)[^\[\]]*(?=\]\])/g);
+        if (Array.isArray(try_match) && try_match.length) {
+            try_match = try_match.map(item => item.replace(/\|.*$/, ""));
+            arrSynths.push(...try_match);
+        };
+        try_match = row.match(/(?<=\{\{[Ss]inger\|)[^\}]*(?=\}\})/g);
+        if (Array.isArray(try_match) && try_match.length) {
+            try_match = try_match.map(item => item.replace(/\|.*$/, ""));
+            arrSynths.push(...try_match);
+        };
+    });
+    //Remove duplicates
+    arrProducers = [...new Set(arrProducers)];
+    arrSynths = [...new Set(arrSynths)];
     let strCategories = "";
 
     //Featuring software/engines
@@ -265,20 +263,16 @@ function autoloadCategories() {
     };
 
     //Featuring singers
-    if (strSynths !== "") {
-        arrSynths.forEach( synth => {
-            synth = synth.trim();
-            strCategories += "Albums featuring " + synth + "\n";
-        });
-    };
+    arrSynths.forEach( synth => {
+        synth = synth.trim();
+        strCategories += "Albums featuring " + synth + "\n";
+    });
 
     //Featuring Producers
-    if (strProducers !== "") {
-        arrProducers.forEach( producer => {
-            producer = producer.trim();
-            strCategories += producer + " songs list/Albums\n";
-        });
-    };
+    arrProducers.forEach( producer => {
+        producer = producer.trim();
+        strCategories += producer + " songs list/Albums\n";
+    });
 
     //Write categories
     $("#categories").val(strCategories);
@@ -330,39 +324,29 @@ function check_form_for_errors() {
     if (!Array.isArray(arrTrackList) || arrTrackList.length == 0 || 
         !arrTrackList.some(function (rowTrack) {return rowTrack[2] !== "";})) {
         arrStrWarning.push("You must add at least one song to the tracklist.");
-        $("#tracklisttablecaption").toggleClass("error",true);
+        $("#tracklist").parent().toggleClass("error",true);
     }
     else {
         //Tracklist issues
         if (arrTrackList.some(function (rowTrack) {return rowTrack[1] == "";})) {
             arrStrWarning.push("You must add the track listing number to all tracks.");
-            $("#tracklisttablecaption").toggleClass("error",true);
+            $("#tracklist").parent().toggleClass("error",true);
         }
         if (arrTrackList.some(function (rowTrack) {return isNaN(rowTrack[0])})) {
             arrStrWarning.push("The disc number must be numeric.");
-            $("#tracklisttablecaption").toggleClass("error",true);
+            $("#tracklist").parent().toggleClass("error",true);
         }
         if (arrTrackList.some(function (rowTrack) {return isNaN(rowTrack[1])})) {
             arrStrWarning.push("The track listing number must be numeric.");
-            $("#tracklisttablecaption").toggleClass("error",true);
+            $("#tracklist").parent().toggleClass("error",true);
         }
         if (arrTrackList.some(function (rowTrack) {return rowTrack[2].trim() == "";})) {
             arrStrWarning.push("You must add a track name to all tracks.");
-            $("#tracklisttablecaption").toggleClass("error",true);
+            $("#tracklist").parent().toggleClass("error",true);
         }
-        if (arrTrackList.some(function (rowTrack) {return rowTrack[4].trim() == "";})) {
-            arrStrWarning.push("You must add featured producers & singers to all tracks, or specify that the song is an instrumental if there are no singers.");
-            $("#tracklisttablecaption").toggleClass("error",true);
-        }
-        if (arrTrackList.some(function (rowTrack) {
-            let url = detagHref(rowTrack[3].trim());
-            if (url == "") {return false};
-            let tryRegex = url.match(/(?<=^https?:\/\/vocaloidlyrics\.fandom\.com\/wiki\/).*/gm);
-            if (!Array.isArray(tryRegex) || tryRegex.length == 0) {return true;}
-            })) 
-        {
-            arrStrWarning.push("You can only add a link to a song page on Vocaloid Lyrics Wiki. Please re-check the page URLs.");
-            $("#tracklisttablecaption").toggleClass("error",true);
+        if (arrTrackList.some(function (rowTrack) {return rowTrack[3].trim() == "" && rowTrack[4].trim() == "";})) {
+            arrStrWarning.push("You must add featured producers/singers to all tracks, or specify that the song is an instrumental if there are no singers.");
+            $("#tracklist").parent().toggleClass("error",true);
         }
     }
 

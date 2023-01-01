@@ -69,6 +69,11 @@ function more_resets() {
   //Hide rows
   $("#thumbrow").hide();
 
+  //Reset colour preview
+  $("table.colourpreview").css("background-color", "black");
+  $("table.colourpreview").css("color", "white");
+  $("table.colourpreview").css("border-color", "white");
+
 }
 
 /*
@@ -158,11 +163,15 @@ function populate_language_list() {
   else {
     setcolor = $("#" + id).val();
     if (validate_colour(setcolor)) {
-      console.log("VALIDATED");
       if (Object.keys(colournames).includes(setcolor)) {setcolor = colournames[setcolor];};
       $("#" + id + "picker").val(setcolor);
     }
   }
+  if (id == "bgcolour") {$("table.colourpreview").css("background-color", setcolor)}
+  else {
+    $("table.colourpreview").css("color", setcolor);
+    $("table.colourpreview").css("border-color", setcolor)
+  };
 }
 
 /*
@@ -252,7 +261,7 @@ function copyOutputToClipboard() {
 <style></style>
 </head>
 <body>
-<h1>Song page generator for <a href="https://vocaloidlyrics.fandom.com/wiki/Vocaloid_Lyrics_Wiki:Song_Article_Guideline" target="_blank" rel="noopener noreferrer">Vocaloid Lyrics Wiki</a></h1>
+<h1>Song page generator for <a href="https://vocaloidlyrics.fandom.com/wiki/Vocaloid_Lyrics_Wiki:Song_Article_Guideline" target="_blank" rel="noopener noreferrer">Vocaloid Lyrics Wiki</a></h1><hr>
 
 <form id="songpageform" onsubmit="return false;"></form>
 
@@ -356,8 +365,13 @@ function copyOutputToClipboard() {
     <td colspan="3"><hr></td>
   </tr>
   <tr>
-    <td class="caption center">Infobox bg/fg colour:</td>
-    <td class="tooltip center"><span class="info">&#x1F6C8;<span class="tooltip">Infobox background (left) and foreground (right) colour<br>hexadecimal colour, e.g., #ff0000<br><em>or</em><br>colour name, e.g., red<hr>(required)</span></span></td>
+    <td class="caption center" rowspan=2>Infobox bg/fg colour:</td>
+    <td class="tooltip center" rowspan=2><span class="info">&#x1F6C8;<span class="tooltip">Infobox background (left) and foreground (right) colour<br>hexadecimal colour, e.g., #ff0000<br><em>or</em><br>colour name, e.g., red<hr>(required)</span></span></td>
+    <td>
+      <table class=colourpreview width=600pt><tr><td><b>Preview</b></td></tr></table>
+    </td>
+  </tr>
+  <tr>
     <td>
       <table width=800pt><tr>
         <td class="div" width=50%>

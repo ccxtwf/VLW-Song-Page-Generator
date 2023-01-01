@@ -166,6 +166,7 @@ function generateInfoBox() {
   if (dateOfPublication !== null) {
     strDateOfPublication = "{{Date|" + dateOfPublication.getFullYear() + "|" + months[dateOfPublication.getMonth()] + "|" + dateOfPublication.getDate() + "}}";
   };
+  if (document.getElementById("albumonly").checked) {strDateOfPublication += " (album release date)";};
   let strSingers = toHTML(read_text("singer"));
   let strProducers = toHTML(read_text("producers"));
   let strDescription = "";
@@ -712,7 +713,7 @@ function check_form_for_errors() {
   let arrStyleLyrics = lyricsTable.getColumnData(0);
   if (arrStyleLyrics.some(function (rowLyrics) {return !validate_colour(rowLyrics.trim());})) {
     arrStrError.push("There is an error with one of the colours in the lyrics table.");
-    $("#lyricstablecaption").toggleClass("error",true);
+    $("#lyricstable").parent().toggleClass("error",true);
   }
 
   //No information added in singers box?
@@ -755,7 +756,7 @@ function check_form_for_errors() {
   arrDataPlayLinks = playLinksTable.getData();
   if (!Array.isArray(arrDataPlayLinks) || arrDataPlayLinks.length == 0) {
     arrStrError.push("No music videos or play links are detected. Please check the \"Song is not publicly available\" option if the song is no longer publicly available or check the \"Album-only Release\" option if the song is released on albums only");
-    $("#playlinkscaption").toggleClass("error",true);
+    $("#lyricstable").parent().toggleClass("error",true);
     bRecommendToReloadCategories = true;
   }
 
@@ -765,7 +766,7 @@ function check_form_for_errors() {
   let bNoURLDetected = !arrDataPlayLinks.some(function (rowPlayLink) {return rowPlayLink[1].trim() !== "";});
   if (bNoURLDetected && !bSongIsAlbumOnly && !bSongIsUnavailable) {
     arrStrError.push("No music videos or play links are detected. Please check the \"Song is not publicly available\" option if the song is no longer publicly available or check the \"Album-only Release\" option if the song is released on albums only");
-    $("#playlinkscaption").toggleClass("error",true);
+    $("#lyricstable").parent().toggleClass("error",true);
     bRecommendToReloadCategories = true;
   }
 
@@ -773,7 +774,7 @@ function check_form_for_errors() {
   let arrOrigLyrics = lyricsTable.getColumnData(1);
   if (!arrOrigLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";})) {
     arrStrError.push("Original lyrics column is empty.");
-    $("#lyricstablecaption").toggleClass("error",true);
+    $("#lyricstable").parent().toggleClass("error",true);
   }
 
   //Romanized lyrics is empty
@@ -783,7 +784,7 @@ function check_form_for_errors() {
     let arrRomLyrics = lyricsTable.getColumnData(2);
     if (!arrRomLyrics.some(function (rowLyrics) {return rowLyrics.trim() !== "";})) {
       arrStrError.push("Romanized/transliterated lyrics column is empty.");
-      $("#lyricstablecaption").toggleClass("error",true);
+      $("#lyricstable").parent().toggleClass("error",true);
     }
   }
 
@@ -876,12 +877,12 @@ function error_resets() {
     $("#uploaddate"),
     $("#bgcolour").parent(),
     $("#fgcolour").parent(),
-    $("#lyricstablecaption"),
     $("#singer"),
     $("#featuredsynth"),
     $("#producers"),
     $("#playlinkscaption"),
     $("#lyricstablecaption"),
+    $("#lyricstable").parent(),
     $("#translator").parent(),
     $("#categories")
   ]
