@@ -1,8 +1,8 @@
 /*
  * Show code history at footer of each site
  */
-const version_history = "2.4.0";
-const update_date = "1 January 2023";
+const version_history = "2.4.2";
+const update_date = "8 July 2023";
 
 /*
  * Stores shared arrays and functions
@@ -288,7 +288,7 @@ const languages =
     {id:["Kazabana"],
         license:"https://kazabana.wordpress.com/about/"},
     {id:["ElectricRaichu", "Len's Lyrics", "Raichu"],
-        license:"http://lenslyrics.ml/licence.html|his website"},
+        license:"https://vocaloidlyrics.fandom.com/wiki/Talk:ElectricRaichu/Translator_Licence|his website"},
     {id:["Magenetra", "Kagamine_Neko", "aquariantwin", "Mellifera_x3"],
         license:"https://magenetratranslations.tumblr.com/Terms|their tumblr"},
     {id:["Matchakame"],
@@ -301,6 +301,8 @@ const languages =
         license:"http://pricechecktranslations.tumblr.com/about|her tumblr"},
     {id:["Releska"],
         license:"https://releska.com/|his blog"},
+    {id:["Tackmyn Y."],
+        license:"https://tackmyn.livedoor.blog/about_me.html|his blog"},
     {id:["TsunaguSubs"],
         license:"https://tsunagusubs.github.io/#faq|her website"},
     {id:["shiyuki332", "Shiyuki", "Shiyuki332"],
@@ -368,8 +370,7 @@ function identify_website(linkurl, listLinks = listRecognizedLinks) {
 function get_translator_license(translator) {
     for (let i = 0; i < translatorlicenses.length; i++) {
         if (translatorlicenses[i].id.indexOf(translator) >= 0) {
-            return "{{TranslatorLicense|" + translatorlicenses[i].id[0] +
-            "|" + translatorlicenses[i].license + "}}\n";
+            return `{{TranslatorLicense|${translatorlicenses[i].id[0]}|${translatorlicenses[i].license}}}\n`;
         };
     }
     return "";
