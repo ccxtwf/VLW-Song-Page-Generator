@@ -368,7 +368,7 @@ function generateLyrics() {
           (bLyricsAreRomanized && !bTranslationExists && rowOrigLyrics == rowRomLyrics) ||
           (!bLyricsAreRomanized && bTranslationExists && rowOrigLyrics == rowEngLyrics)) {
             setLyricsColours.add(rowStyling);
-            strLyricsTable += "| {{shared|" + wikiNumColumns + "}} style=\"font-style:italic; font-weight:bold; text-align:center;\" |" + rowOrigLyrics + "\n";
+            strLyricsTable += "| {{shared|" + wikiNumColumns + "}} " + rowOrigLyrics + "\n";
         }
 
         //Add each line otherwise

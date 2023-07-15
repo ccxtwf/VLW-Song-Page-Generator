@@ -98,7 +98,7 @@ function getTableFromSourceData() {
         console.log("Case unmerge: ") + wikiRowLyrics[1];
         //wikiRowLyrics[1] = wikiRowLyrics[1].replace(/^.*\|/,"")
         mergedLyrics = wikiRowLyrics[1];
-        plcTryRegex = mergedLyrics.match(/(?<=(\{\{shared\|\d\}\}).*\|).*/g);
+        plcTryRegex = mergedLyrics.match(/(?<=(\{\{shared\|\d\}\})\s*).*/g);
         if (Array.isArray(plcTryRegex)) {
           //Case: Lyrics have been merged in the format "{{shared|n}} |"
           mergedLyrics = plcTryRegex[0];
@@ -252,7 +252,7 @@ function generateLyrics() {
         (bLyricsAreRomanized && !bTranslationExists && rowOrigLyrics == rowRomLyrics) ||
         (!bLyricsAreRomanized && bTranslationExists && rowOrigLyrics == rowEngLyrics)) {
           setLyricsColours.add(rowStyling);
-          strLyricsTable += "| {{shared|" + wikiNumColumns + "}} style=\"font-style:italic; font-weight:bold; text-align:center;\" |" + rowOrigLyrics + "\n";
+          strLyricsTable += "| {{shared|" + wikiNumColumns + "}} " + rowOrigLyrics + "\n";
       }
 
       //Add each line otherwise
