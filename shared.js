@@ -1,8 +1,8 @@
 /*
  * Show code history at footer of each site
  */
-const version_history = "2.4.2";
-const update_date = "8 July 2023";
+const version_history = "2.4.3";
+const update_date = "16 July 2023";
 
 /*
  * Stores shared arrays and functions
