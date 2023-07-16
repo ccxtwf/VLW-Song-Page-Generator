@@ -571,13 +571,13 @@ function autoloadCategories() {
       //do nothing
       break;
     case 2:
-      strAutoloadCategories += "\n" + "Duet original songs";
+      strAutoloadCategories += "\n" + "Duet songs";
       break;
     case 3:
-      strAutoloadCategories += "\n" + "Trios original songs";
+      strAutoloadCategories += "\n" + "Trio songs";
       break;
     default:
-      strAutoloadCategories += "\n" + "Group rendition original songs";
+      strAutoloadCategories += "\n" + "Group rendition songs";
       break;
   };
 
