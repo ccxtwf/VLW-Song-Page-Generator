@@ -268,7 +268,7 @@ function generateProducerPage() {
     };
     if (list_label.length && list_affliations.length) {strAffliations += "\n"};
     if (list_affliations.length) {
-        strAffliations += "==Affliations==\n"
+        strAffliations += "==Affiliations==\n"
         list_affliations.forEach(affliation => {
             strAffliations += "*" + affliation + "\n"
         });
